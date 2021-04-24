@@ -1,12 +1,12 @@
-
 import gym
 from gym import wrappers
-from core.Net import Net
+from core.NeuralNetwork import NeuralNetwork
 import random
 import numpy as np
+import pickle as pk
 
 class DQNAgent:
-	""" Deep Q learning agent with
+	""" Deep Q learning agent
 	"""
 	def __init__(self, env):
 		"""
@@ -20,7 +20,14 @@ class DQNAgent:
 				and action_space is discrete:------------------------
 		"""
 		self.env = env
-		self.nn = Net(env.observation_space.shape[0], env.action_space.n, 0.5)
+		def sigmoid(z: np.array, derivative=False):
+			if derivate:
+				return np.exp(-x) / (1 + np.exp(-x)) ** 2
+			return 1 + np.exp(-x)
+		def cost_function_derivate(predicted, target):
+			return predicted - target
+		self.nn = NeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], [sigmoid]*3, cost_function_derivate)
+	
 	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
@@ -40,28 +47,37 @@ class DQNAgent:
 
 		# get the first state
 		current_state = self.env.reset()
-		current_state = current_state.reshape(1, -1)
 		while not done:
 			# choose action
-			q_values = self.nn.model.predict(current_state)
-			action = self.env.action_space.sample()  if random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values)
+			a, z = self.nn.forward_propagate(current_state)
+			q_values_predicted = a[-1]
+			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
 
 			next_state, reward, done, _ = self.env.step(action)
-			next_state = next_state.reshape(1, -1)
 			if monitor:
 				total_reward += reward
 				steps += 1
 				self.env.render()
 			
 			# find target q(s)
-			q_values_target = np.copy(q_values)
-			q_values_target[0][action] = float = reward + discount_factor * np.max(self.nn.model.predict(next_state))
+			q_values_target = np.copy(q_values_predicted)
+			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.model.predict(next_state))
 
 			# update neural network
-			self.nn.model.fit(current_state, q_values_target, epochs=1, verbose=0)
+			self.nn.backpropagate(a, z, q_values_target, learning_rate)
 
 			# set current state
 			current_state = next_state
 
 
 		if monitor: return total_reward, steps
+
+	
+	def save(self, path: str):
+		with open(path, "wb") as file:
+			pk.dump(self, file)
+
+	@staticmethod
+	def load(path: str):
+		with open(path, "rb") as file:
+			return pk.load(file)
