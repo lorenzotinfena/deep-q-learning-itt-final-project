@@ -14,8 +14,9 @@ print('action_space: ' + str(env.action_space))
 agent = DQNAgent(env)
 
 DISCOUNT_FACTOR = 0.9
-LEARNING_RATE = 0.6
+LEARNING_RATE = 0.1
 total_rewards = []
+agent.nn.model.load_weights('salavaggio.sav')
 #evaluating
 for i in range(10):
     total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
@@ -24,10 +25,13 @@ for i in range(10):
 print(total_rewards)
 print('mean: ' + str(np.array(total_rewards).mean()))
 #training
-for i in range(20):
+for i in range(500):
     total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
     print(total_reward)
     total_rewards.append(total_reward)
+    if i%50 == 0:
+        agent.nn.model.save_weights('salavaggio.sav')
+agent.nn.model.save_weights('salavaggio.sav')
 print(total_rewards)
 print('mean: ' + str(np.array(total_rewards).mean()))
 total_rewards = []
