@@ -1,6 +1,6 @@
 import gym
 from gym import wrappers
-from core.NeuralNetwork import NeuralNetwork
+from core.CustomNeuralNetwork import CustomNeuralNetwork
 import random
 import numpy as np
 import pickle as pk
@@ -8,7 +8,7 @@ import pickle as pk
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
-	def __init__(self, env):
+	def __init__(self, env, path):
 		"""
 		Args:
 			env: enviroment to use
@@ -19,25 +19,11 @@ class DQNAgent:
 				- render(mode='human')
 				and action_space is discrete:------------------------
 		"""
-		# activation function:
-		#def sigmoid(x: np.array, derivative=False):
-		#	if derivative:
-		#		return np.exp(-x) / (1 + np.exp(-x)) ** 2
-		#	return 1 / (1 + np.exp(-x))
-		# cost function:
-		def sum_square_error(predicted, target):
-			return 1/2 * np.sum((predicted - target)**2)
-		def sum_square_error_derivative(predicted, target):
-			return predicted - target
-		def identity(x, derivative=False):
-			if derivative: return np.ones(len(x))
-			else: return x
-		self.cost_function = sum_square_error
-		cost_function_derivative = sum_square_error_derivative
-		activation_functions = [identity]*3
-
 		self.env = env
-		self.nn = NeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], activation_functions, cost_function_derivative)
+		self.nn = CustomNeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], path)
+
+	def save(self, path: str):
+		self.nn.save(path)
 	
 	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False):
 		""" start the episode, finish when enviroment return done=True
@@ -74,9 +60,6 @@ class DQNAgent:
 				total_reward += reward
 				steps += 1
 				self.env.render()
-				if (np.isnan(self.cost_function(q_values_predicted, q_values_target))):
-					fddsf = 1
-				print(str(self.cost_function(q_values_predicted, q_values_target)))
 
 			# update neural network
 			self.nn.backpropagate(a, z, q_values_target, learning_rate)
@@ -86,13 +69,3 @@ class DQNAgent:
 
 
 		if monitor: return total_reward, steps
-
-	
-	def save(self, path: str):
-		with open(path, "wb") as file:
-			pk.dump((self.nn.weights, self.nn.biases), file)
-
-	@staticmethod
-	def load(path: str):
-		with open(path, "rb") as file:
-			return pk.load(file)
