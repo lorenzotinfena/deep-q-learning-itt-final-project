@@ -13,7 +13,7 @@ class NeuralNetwork:
 		"""
         self.activation_functions = activation_functions
         self.cost_function_derivative = cost_function_derivative
-        self.bias = [(np.random.randn(layer)) for layer in n_neurons[1:]]
+        self.biases = [(np.random.randn(layer)) for layer in n_neurons[1:]]
         self.n_neurons = n_neurons
         self.weights = [(np.random.randn(n_neurons[i + 1], n_neurons[i])) for i in range(len(n_neurons) - 1)]
 
@@ -25,8 +25,8 @@ class NeuralNetwork:
 		Return:
 			prediction: np.ndarray 1dim
 		"""
-        for thetas, bias, activation_function in zip(self.thetas, self.bias,self.activation_functions):
-            input = self.activation_function(thetas.dot(input) + bias)
+        for weights, biases, activation_function in zip(self.weights, self.biases,self.activation_functions):
+            input = activation_function(weights.dot(input) + biases)
         return input.T[0]
 
     def forward_propagate(self, input: np.ndarray) -> (np.ndarray,  np.ndarray):
@@ -39,10 +39,10 @@ class NeuralNetwork:
         """
         a = [input]
         z = [input]
-        for thetas, bias, activation_function in zip(self.thetas, self.bias, self.activation_functions):
-            z_ = thetas.dot(input) + bias
+        for weights, biases, activation_function in zip(self.weights, self.biases, self.activation_functions):
+            z_ = weights.dot(input) + biases
             z.append(z_)
-            input = self.activation_function(z_)
+            input = activation_function(z_)
             a.append(input)
         return np.array(a), np.array(z)
 
@@ -55,10 +55,10 @@ class NeuralNetwork:
             learning_rate: float
         """
         gradients_z = self.cost_function_derivative(a[-1], target_output) * self.activation_functions[self.n_neurons[-1]](z[-1], True) # error*activation'()
-        for i, (weights, bias, z, a, activation_function) in reversed(enumerate(zip(self.weights, self.bias, z[:-1], a[:-1], self.activation_functions))):
-            bias += learning_rate * gradients_z
+        for i, (weights, biases, z, a, activation_function) in reversed(list(enumerate(zip(self.weights, self.biases, z[:-1], a[:-1], self.activation_functions)))):
+            biases -= learning_rate * gradients_z
             if i != 0:
                 gradients_a = weights.T.dot(gradients_z)
-            weights += learning_rate * gradients_z.dot(a.T)
+            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a.reshape(1, -1))
             if i != 0:
-                gradients_z = gradients_a * self.activation_function(z)
+                gradients_z = gradients_a * activation_function(z, True)

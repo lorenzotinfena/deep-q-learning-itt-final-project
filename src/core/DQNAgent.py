@@ -19,14 +19,25 @@ class DQNAgent:
 				- render(mode='human')
 				and action_space is discrete:------------------------
 		"""
-		self.env = env
-		def sigmoid(z: np.array, derivative=False):
-			if derivate:
-				return np.exp(-x) / (1 + np.exp(-x)) ** 2
-			return 1 + np.exp(-x)
-		def cost_function_derivate(predicted, target):
+		# activation function:
+		#def sigmoid(x: np.array, derivative=False):
+		#	if derivative:
+		#		return np.exp(-x) / (1 + np.exp(-x)) ** 2
+		#	return 1 / (1 + np.exp(-x))
+		# cost function:
+		def sum_square_error(predicted, target):
+			return 1/2 * np.sum((predicted - target)**2)
+		def sum_square_error_derivative(predicted, target):
 			return predicted - target
-		self.nn = NeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], [sigmoid]*3, cost_function_derivate)
+		def identity(x, derivative=False):
+			if derivative: return np.ones(len(x))
+			else: return x
+		self.cost_function = sum_square_error
+		cost_function_derivative = sum_square_error_derivative
+		activation_functions = [identity]*3
+
+		self.env = env
+		self.nn = NeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], activation_functions, cost_function_derivative)
 	
 	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False):
 		""" start the episode, finish when enviroment return done=True
@@ -54,14 +65,18 @@ class DQNAgent:
 			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
 
 			next_state, reward, done, _ = self.env.step(action)
+			
+			# find target q(s)
+			q_values_target = np.copy(q_values_predicted)
+			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.predict(next_state))
+
 			if monitor:
 				total_reward += reward
 				steps += 1
 				self.env.render()
-			
-			# find target q(s)
-			q_values_target = np.copy(q_values_predicted)
-			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.model.predict(next_state))
+				if (np.isnan(self.cost_function(q_values_predicted, q_values_target))):
+					fddsf = 1
+				print(str(self.cost_function(q_values_predicted, q_values_target)))
 
 			# update neural network
 			self.nn.backpropagate(a, z, q_values_target, learning_rate)
@@ -75,7 +90,7 @@ class DQNAgent:
 	
 	def save(self, path: str):
 		with open(path, "wb") as file:
-			pk.dump(self, file)
+			pk.dump((self.nn.weights, self.nn.biases), file)
 
 	@staticmethod
 	def load(path: str):
