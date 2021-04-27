@@ -4,7 +4,6 @@ from core.CustomNeuralNetwork import CustomNeuralNetwork
 import random
 import numpy as np
 import pickle as pk
-
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
@@ -50,6 +49,9 @@ class DQNAgent:
 			q_values_predicted = a[-1]
 			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
 
+			if monitor:
+				self.env.render(mode="rgb_array")
+			
 			next_state, reward, done, _ = self.env.step(action)
 			
 			# find target q(s)
@@ -59,7 +61,6 @@ class DQNAgent:
 			if monitor:
 				total_reward += reward
 				steps += 1
-				self.env.render()
 
 			# update neural network
 			self.nn.backpropagate(a, z, q_values_target, learning_rate)
