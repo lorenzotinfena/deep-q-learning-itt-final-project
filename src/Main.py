@@ -8,15 +8,18 @@ import pyvirtualdisplay
 _display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
 _ = _display.start()
 
+def evaluate(env, num_episodes):
+    for _ in range(num_episodes):
+        
 env = gym.make("CartPole-v1")
 env = gym.wrappers.Monitor(env, 'recording', force=True)
 print('state_space / observation_space: ' + str(np.array(env.observation_space)))
 print('action_space: ' + str(env.action_space))
 
 DISCOUNT_FACTOR = 0.99
-LEARNING_RATE = 0.000005
+LEARNING_RATE = 0.00005
 total_rewards = []
-agent = DQNAgent(env, 'saves/data.nn')
+agent = DQNAgent(env)
 np.random.seed(1000)
 #evaluating
 for i in range(10):
@@ -29,17 +32,20 @@ total_rewards = []
 #training
 print('\n\nTRAINING')
 #agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
-#for i in tqdm (range (200), desc="Learning..."):
-#    agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, False)
+for i in tqdm (range (20000), desc="Learning..."):
+    agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, False)
     #total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
     #print(total_reward)
     #total_rewards.append(total_reward)
-    #if i%50 == 0:
-    #    agent.save('saves/data.agent')
+    if i%1000 == 0:
+        total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
+        print(total_reward)
+        agent.save('saves/data.nn')
 #agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
-#agent.save('saves/data.nn')
+agent.save('saves/data.nn')
 #print(total_rewards)
 #print('mean: ' + str(np.array(total_rewards).mean()))
+
 print('\n\nEVALUATING')
 
 total_rewards = []

@@ -19,3 +19,11 @@ RUN apt-get install -y --no-install-recommends \
 ADD ./.devcontainer/pip-requirements.txt /tmp/
 RUN pip install -r /tmp/pip-requirements.txt
 RUN rm /tmp/pip-requirements.txt
+
+# fix
+RUN cd /tmp/ \
+       git clone https://github.com/openai/gym.git \
+       cd gym \
+       pip install -e . \
+       cd .. \
+       rm gym

@@ -29,7 +29,7 @@ class NeuralNetwork:
             input = activation_function(weights.dot(input) + biases)
         return input.T[0]
 
-    def forward_propagate(self, input: np.ndarray) -> (np.ndarray,  np.ndarray):
+    def forward_propagate(self, input: np.ndarray) -> (list[np.ndarray],  list[np.ndarray]):
         """
         Args:
             input: np.ndarray 1dim
@@ -44,13 +44,13 @@ class NeuralNetwork:
             z.append(z_)
             input = activation_function(z_)
             a.append(input)
-        return np.array(a), np.array(z)
+        return a, z
 
-    def backpropagate(self, z: np.ndarray, a: np.ndarray, target_output: np.array, learning_rate: float):
+    def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float, monitor=False):
         """
         Args:
-            z: np.ndarray
-            a: np.ndarray
+            z: list[np.ndarray]
+            a: list[np.ndarray]
             target_output: np.array
             learning_rate: float
         """
@@ -62,6 +62,7 @@ class NeuralNetwork:
             weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a.reshape(1, -1))
             if i != 0:
                 gradients_z = gradients_a * activation_function_derivative(z)
+        if monitor: return self.cost_function(target_output, a[-1])
     def save(self, path: str):
         with open(path, "wb") as file:
             pk.dump((self.weights, self.biases), file)

@@ -7,7 +7,7 @@ import pickle as pk
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
-	def __init__(self, env, path):
+	def __init__(self, env, path=None):
 		"""
 		Args:
 			env: enviroment to use
@@ -24,7 +24,8 @@ class DQNAgent:
 	def save(self, path: str):
 		self.nn.save(path)
 	
-	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False):
+	def train()
+	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False, render=False):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -49,8 +50,8 @@ class DQNAgent:
 			q_values_predicted = a[-1]
 			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
 
-			if monitor:
-				self.env.render(mode="rgb_array")
+			if render:
+				self.env.render()
 			
 			next_state, reward, done, _ = self.env.step(action)
 			
@@ -61,9 +62,10 @@ class DQNAgent:
 			if monitor:
 				total_reward += reward
 				steps += 1
-
+				print('cost: ' + str(self.nn.backpropagate(z, a, q_values_target, learning_rate, True)))
+			else:
 			# update neural network
-			self.nn.backpropagate(a, z, q_values_target, learning_rate)
+				self.nn.backpropagate(z, a, q_values_target, learning_rate)
 
 			# set current state
 			current_state = next_state

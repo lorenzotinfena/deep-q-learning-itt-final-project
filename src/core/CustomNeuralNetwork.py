@@ -14,12 +14,21 @@ class CustomNeuralNetwork(NeuralNetwork):
         super().__init__(n_neurons, path)
 
 
-        def identity(x):
-            return x
-        
-        def identity_derivative(x):
-            return np.ones(len(x))
+        def identity(x): return x
+        def identity_derivative(x): return np.ones(len(x))
 
+        def ReLU(x):
+            x = np.copy(x)
+            x[x<0] = 0
+            return x
+        def ReLU_derivative(x):
+            x = np.copy(x)
+            x[x<=0] = 0
+            x[x>0] = 1
+            return x
+
+        def sum_square_error(predicted, target):
+            return 1/2 * np.sum((predicted - target)**2)
         def sum_square_error_derivative(predicted, target):
             return predicted - target
         
@@ -30,8 +39,9 @@ class CustomNeuralNetwork(NeuralNetwork):
             cost_function_derivative: function(predicted: np.array, target: np.array)->np.array
                 partial derivatives of cost_function respect to predicted values
 		"""
-        self.activation_functions = [identity]*3
-        self.activation_functions_derivative = [identity_derivative]*3
+        self.activation_functions = [ReLU]*3
+        self.activation_functions_derivative = [ReLU_derivative]*3
+        self.cost_function = sum_square_error
         self.cost_function_derivative = sum_square_error_derivative
 
 
