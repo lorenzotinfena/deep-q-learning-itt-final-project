@@ -24,7 +24,7 @@ class DQNAgent:
 	def save(self, path: str):
 		self.nn.save(path)
 	
-	def train()
+	#def train()
 	def start_episode(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, monitor=False, render=False):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
