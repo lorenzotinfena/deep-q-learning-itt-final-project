@@ -16,7 +16,7 @@ print('action_space: ' + str(env.action_space))
 DISCOUNT_FACTOR = 0.99
 LEARNING_RATE = 0.000005
 total_rewards = []
-agent = DQNAgent(env, 'saves/data.weights')
+agent = DQNAgent(env, 'saves/data.nn')
 np.random.seed(1000)
 #evaluating
 for i in range(10):
