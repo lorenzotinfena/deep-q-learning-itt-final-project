@@ -1,6 +1,9 @@
 import gym
 from gym import wrappers
-from core.CustomNeuralNetwork import CustomNeuralNetwork
+try:
+	from core.CustomNeuralNetwork import CustomNeuralNetwork
+except:
+	from CustomNeuralNetwork import CustomNeuralNetwork
 import random
 import numpy as np
 import pickle as pk
@@ -19,7 +22,7 @@ class DQNAgent:
 				and action_space is discrete:------------------------
 		"""
 		self.env = env
-		self.nn = CustomNeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], path)
+		self.nn = CustomNeuralNetwork([env.observation_space.shape[0], 24, 24, env.action_space.n], path)
 
 	def save(self, path: str):
 		self.nn.save(path)
@@ -40,17 +43,20 @@ class DQNAgent:
 		done = False
 		while not done:
 			# choose action
-			a, z = self.nn.forward_propagate(current_state)
+			z, a = self.nn.forward_propagate(current_state)
 			q_values_predicted = a[-1]
 			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
 			
 			# execute action
 			next_state, reward, done, _ = self.env.step(action)
 			
+			
 			# find target q(s)
 			q_values_target = np.copy(q_values_predicted)
 			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.predict(next_state))
 
+			if done:
+				q_values_target[action] = -1
 			# update neural network
 			self.nn.backpropagate(z, a, q_values_target, learning_rate)
 
@@ -69,6 +75,10 @@ class DQNAgent:
 			render: if env is rendered at each step
 			optimize: if nn have to be optimized
 		"""
+		if any([any([any(np.isnan(weights)) for weights in weights]) for weights in self.nn.weights]) or any([any(np.isnan(biases)) for biases in self.nn.biases]):
+			print('nan weights or biases')
+			return None, None, None
+		
 		total_reward = 0
 		steps = 0
 		cost_function = []
@@ -79,9 +89,9 @@ class DQNAgent:
 		done = False
 		while not done:
 			# choose action
-			a, z = self.nn.forward_propagate(current_state)
+			z, a = self.nn.forward_propagate(current_state)
 			q_values_predicted = a[-1]
-			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
+			action = self.env.action_space.sample()  if np.random.random() < exploration_epsilon else np.argmax(q_values_predicted)
 
 			# render
 			if render: self.env.render()
@@ -91,6 +101,7 @@ class DQNAgent:
 			
 			# find target q(s)
 			q_values_target = np.copy(q_values_predicted)
+			gg = self.nn.predict(next_state)
 			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.predict(next_state))
 
 			# update monitor metrics

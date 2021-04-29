@@ -11,8 +11,8 @@ class NeuralNetwork:
 		"""
         self.n_neurons = n_neurons
         if path == None:
-            self.biases = [(np.random.randn(layer)) for layer in n_neurons[1:]]
-            self.weights = [(np.random.randn(n_neurons[i + 1], n_neurons[i])) for i in range(len(n_neurons) - 1)]
+            self.biases = [np.random.uniform(low=-0.5, high=0.5, size=(layer)) for layer in n_neurons[1:]]
+            self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i])) for i in range(len(n_neurons) - 1)]
         else:
             with open(path, "rb") as file:
                 self.weights, self.biases = pk.load(file)
@@ -27,7 +27,7 @@ class NeuralNetwork:
 		"""
         for weights, biases, activation_function in zip(self.weights, self.biases, self.activation_functions):
             input = activation_function(weights.dot(input) + biases)
-        return input.T[0]
+        return input##########quaaa
 
     def forward_propagate(self, input: np.array) -> (list[np.ndarray],  list[np.ndarray]):
         """
@@ -44,7 +44,7 @@ class NeuralNetwork:
             z.append(z_)
             input = activation_function(z_)
             a.append(input)
-        return a, z
+        return z, a
     
     def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float):
         """
