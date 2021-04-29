@@ -39,7 +39,7 @@ class CustomNeuralNetwork(NeuralNetwork):
             cost_function_derivative: function(predicted: np.array, target: np.array)->np.array
                 partial derivatives of cost_function respect to predicted values
 		"""
-        self.activation_functions = [ReLU]*3
-        self.activation_functions_derivative = [ReLU_derivative]*3
+        self.activation_functions = [identity]*3
+        self.activation_functions_derivative = [identity_derivative]*3
         self.cost_function = sum_square_error
         self.cost_function_derivative = sum_square_error_derivative
