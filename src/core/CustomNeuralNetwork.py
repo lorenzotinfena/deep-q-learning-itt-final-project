@@ -28,7 +28,7 @@ class CustomNeuralNetwork(NeuralNetwork):
             return x
 
         def sum_square_error(predicted, target):
-            return 1/2 * np.sum((predicted - target)**2)
+            return np.sum((predicted - target)**2) / 2
         def sum_square_error_derivative(predicted, target):
             return predicted - target
         
@@ -43,5 +43,3 @@ class CustomNeuralNetwork(NeuralNetwork):
         self.activation_functions_derivative = [ReLU_derivative]*3
         self.cost_function = sum_square_error
         self.cost_function_derivative = sum_square_error_derivative
-
-

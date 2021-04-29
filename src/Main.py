@@ -23,7 +23,7 @@ agent = DQNAgent(env, 'saves/data.nn')
 np.random.seed(1000)
 #evaluating
 for i in range(10):
-    total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
+    total_reward, steps, mean_cost_function = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0)
     print(total_reward)
     total_rewards.append(total_reward)
 print(total_rewards)
@@ -32,13 +32,13 @@ total_rewards = []
 #training
 print('\n\nTRAINING')
 #agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
-for i in tqdm (range (200), desc="Learning..."):
-    agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, False)
+for i in tqdm (range (20), desc="Learning..."):
+    agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1)
     #total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
     #print(total_reward)
     #total_rewards.append(total_reward)
     if i%1000 == 0:
-        total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
+        total_reward, steps, mean_cost_function = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0)
         print(total_reward)
         agent.save('saves/data1.nn')
 #agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
@@ -51,7 +51,7 @@ print('\n\nEVALUATING')
 total_rewards = []
 #evaluating
 for i in range(10):
-    total_reward, steps = agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
+    total_reward, steps, mean_cost_function = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, True)
     print(total_reward)
     total_rewards.append(total_reward)
 print(total_rewards)

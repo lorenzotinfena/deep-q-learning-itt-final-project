@@ -3,7 +3,6 @@ from IPython import display
 import matplotlib.pyplot as plt
 #%matplotlib inline
 import gym 
-import pybulletgym
 
 import pyvirtualdisplay
 _display = pyvirtualdisplay.Display(visible=False, size=(1920, 1080))

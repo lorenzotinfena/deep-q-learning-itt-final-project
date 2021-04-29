@@ -45,8 +45,8 @@ class NeuralNetwork:
             input = activation_function(z_)
             a.append(input)
         return a, z
-
-    def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float, monitor=False):
+    
+    def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float):
         """
         Args:
             z: list[np.ndarray]
@@ -54,15 +54,20 @@ class NeuralNetwork:
             target_output: np.array
             learning_rate: float
         """
-        gradients_z = self.cost_function_derivative(a[-1], target_output) * self.activation_functions_derivative[self.n_neurons[-1]](z[-1]) # error*activation'()
-        for i, (weights, biases, z, a, activation_function_derivative) in reversed(list(enumerate(zip(self.weights, self.biases, z[:-1], a[:-1], self.activation_functions_derivative)))):
-            biases -= learning_rate * gradients_z
-            if i != 0:
-                gradients_a = weights.T.dot(gradients_z)
+        # compute last layer gradients
+        gradients_a = self.cost_function_derivative(a[-1], target_output)
+        gradients_z = gradients_a * self.activation_functions_derivative[-1](z[-1])
+
+        # update weights and biases, and compute gradients for hidden layers
+        for weights, biases, z, a, activation_function_derivative in reversed(list(zip(self.weights[1:], self.biases[1:], z[1:-1], a[1:-1], self.activation_functions_derivative[:-1]))):
             weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a.reshape(1, -1))
-            if i != 0:
-                gradients_z = gradients_a * activation_function_derivative(z)
-        if monitor: return self.cost_function(target_output, a[-1])
+            biases -= learning_rate * gradients_z
+            gradients_a = weights.T.dot(gradients_z)
+            gradients_z = gradients_a * activation_function_derivative(z)
+
+        #update first weights and biases
+        self.weights[0] -= learning_rate * gradients_z.reshape(-1, 1).dot(a[0].reshape(1, -1))
+        self.biases[0] -= learning_rate * gradients_z
     def save(self, path: str):
         with open(path, "wb") as file:
             pk.dump((self.weights, self.biases), file)
