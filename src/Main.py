@@ -29,7 +29,6 @@ print(total_rewards)
 print('mean: ' + str(np.array(total_rewards).mean()))
 total_rewards = []
 #training
-print('\n\nTRAINING')
 #agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1, True)
 for i in tqdm (range (20), desc="Learning..."):
     agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1)

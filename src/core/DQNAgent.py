@@ -57,7 +57,7 @@ class DQNAgent:
 			# set current state
 			current_state = next_state
 		
-	def start_episode_and_evaluate(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, render=False):
+	def start_episode_and_evaluate(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, render=False, optimize=True):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -67,6 +67,7 @@ class DQNAgent:
 				0 < learning_rate
 			exploration_epsilon: exploration probability
 			render: if env is rendered at each step
+			optimize: if nn have to be optimized
 		"""
 		total_reward = 0
 		steps = 0
@@ -97,8 +98,9 @@ class DQNAgent:
 			steps += 1
 			cost_function.append(self.nn.cost_function(q_values_predicted, q_values_target))
 			
-			# update neural network
-			self.nn.backpropagate(z, a, q_values_target, learning_rate)
+			if optimize:
+				# update neural network
+				self.nn.backpropagate(z, a, q_values_target, learning_rate)
 
 			# set current state
 			current_state = next_state
