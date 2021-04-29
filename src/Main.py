@@ -10,12 +10,11 @@ _ = _display.start()
 
 #def evaluate(env, num_episodes):
 #    for _ in range(num_episodes):
+
+
         
 env = gym.make("CartPole-v1")
 env = gym.wrappers.Monitor(env, 'recording', force=True)
-print('state_space / observation_space: ' + str(np.array(env.observation_space)))
-print('action_space: ' + str(env.action_space))
-
 DISCOUNT_FACTOR = 0.99
 LEARNING_RATE = 0.00005
 total_rewards = []
