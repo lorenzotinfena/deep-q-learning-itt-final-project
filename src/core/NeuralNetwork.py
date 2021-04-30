@@ -27,7 +27,7 @@ class NeuralNetwork:
 		"""
         for weights, biases, activation_function in zip(self.weights, self.biases, self.activation_functions):
             input = activation_function(weights.dot(input) + biases)
-        return input.T[0]
+        return input
 
     def forward_propagate(self, input: np.array) -> (list[np.ndarray],  list[np.ndarray]):
         """
@@ -59,8 +59,8 @@ class NeuralNetwork:
         gradients_z = gradients_a * self.activation_functions_derivative[-1](z[-1])
         
         # update weights and biases, and compute gradients for hidden layers
-        for weights, biases, z, a, activation_function_derivative in reversed(list(zip(self.weights[1:], self.biases[1:], z[1:-1], a[1:-1], self.activation_functions_derivative[:-1]))):
-            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a.reshape(1, -1))
+        for weights, biases, z, a_, activation_function_derivative in reversed(list(zip(self.weights[1:], self.biases[1:], z[1:-1], a[1:-1], self.activation_functions_derivative[:-1]))):
+            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a_.reshape(1, -1))
             biases -= learning_rate * gradients_z
             gradients_a = weights.T.dot(gradients_z)
             gradients_z = gradients_a * activation_function_derivative(z)
