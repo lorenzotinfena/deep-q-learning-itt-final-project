@@ -6,7 +6,7 @@ except:
 	from NeuralNetwork import NeuralNetwork
 
 class CustomNeuralNetwork(NeuralNetwork):
-    def __init__(self, n_neurons: np.array, path: str):
+    def __init__(self, n_neurons: np.array, path: str = None):
         """
         args:
             n_neurons: np.array

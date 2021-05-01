@@ -1,49 +1,48 @@
-from core.DQNAgent import DQNAgent
+from core.CustomNeuralNetwork import CustomNeuralNetwork
 import gym
 import numpy as np
 import torch
 from tqdm import tqdm
-
-import pyvirtualdisplay
-_display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
-_ = _display.start()
-
-#env = gym.wrappers.Monitor(env, 'recording', force=True)
-np.random.seed(1000)
-
-DISCOUNT_FACTOR = 0.99
-LEARNING_RATE = 0.00005
-total_rewards = []
-number_steps = []
-cost_function_means = []
-env = gym.make("CartPole-v1")
-env = gym.wrappers.Monitor(env, 'recording', force=True, video_callable=lambda episode_id: True)
-agent = DQNAgent(env)
-
-for i in range(10):
-    total_reward, steps, mean_cost_function = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=True, optimize=False)
-    total_rewards.append(total_reward)
-    total_rewards.append(total_reward)
-    total_rewards.append(total_reward)
-env.close()
-
-'''import gym
-from IPython import display
-import matplotlib.pyplot as plt
-#%matplotlib inline
-import gym 
-
-import pyvirtualdisplay
-_display = pyvirtualdisplay.Display(visible=False, size=(1920, 1080))
-_ = _display.start()
+from CartPoleWrapper import CartPoleWrapper
 
 
-env = gym.make('CartPole-v1')
-env = gym.wrappers.Monitor(env, "./recording", force=True)
-for _ in range(2):
-    env.reset()
-    done = False
-    while not done:
-        env.render()
-        _, _, done, _ = env.step(env.action_space.sample())
-env.close()'''
+LR = 0.001
+gamma = 0.95
+exploration_epsilon = 0.5                
+def main():
+    np.random.seed(1000)
+
+    # Global variables
+    NUM_EPISODES = 1000
+    MAX_TIMESTEPS = 1000
+    nn = CustomNeuralNetwork([4, 5, 5, 2])
+    env=CartPoleWrapper(gym.make('CartPole-v1'))
+
+    # The main program loop
+    for i_episode in range(NUM_EPISODES):
+        observation = env.reset()
+        # Iterating through time steps within an episode
+        for t in range(MAX_TIMESTEPS):
+            z, a = nn.forward_propagate(observation)
+            q_values_predicted = a[-1]
+            action = env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
+            prev_obs = observation
+            observation, reward, done, info = env.step(action)
+
+            z1, a1 = nn.forward_propagate(observation)
+            next_action_values = a1[-1]
+            experimental_values = np.copy(q_values_predicted)
+            if done:
+                experimental_values[action] = -1
+            else:
+                experimental_values[action] = 1 + gamma*np.max(next_action_values)
+            
+        
+            nn.backpropagate(z, a, experimental_values, LR)
+            # epsilon decay
+            if done:
+                # If the pole has tipped over, end this episode
+                print('Episode {} ended after {} timesteps'.format(i_episode, t+1))
+                break
+if __name__ == '__main__':
+    main()

@@ -22,8 +22,13 @@ class DQNAgent:
 				and action_space is discrete:------------------------
 		"""
 		self.env = env
-		self.nn = CustomNeuralNetwork([env.observation_space.shape[0], 24, 24, env.action_space.n], path)
+		self.nn = CustomNeuralNetwork([env.observation_space.shape[0], 5, 5, env.action_space.n], path)
 
+	@property.setter
+    def (self, ):
+        print("Getting value...")
+        return self._temperature
+	
 	def save(self, path: str):
 		self.nn.save(path)
 	
@@ -53,7 +58,8 @@ class DQNAgent:
 			
 			# find target q(s)
 			q_values_target = np.copy(q_values_predicted)
-			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.predict(next_state))
+			if done: q_values_target[action] = reward
+			else: q_values_target[action] = reward + discount_factor * np.max(self.nn.predict(next_state))
 
 			if done:
 				q_values_target[action] = -1
@@ -75,10 +81,6 @@ class DQNAgent:
 			render: if env is rendered at each step
 			optimize: if nn have to be optimized
 		"""
-		if any([any([any(np.isnan(weights)) for weights in weights]) for weights in self.nn.weights]) or any([any(np.isnan(biases)) for biases in self.nn.biases]):
-			print('nan weights or biases')
-			return None, None, None
-		
 		total_reward = 0
 		steps = 0
 		cost_function = []
@@ -101,9 +103,9 @@ class DQNAgent:
 			
 			# find target q(s)
 			q_values_target = np.copy(q_values_predicted)
-			gg = self.nn.predict(next_state)
-			q_values_target[action]: float = reward + discount_factor * np.max(self.nn.predict(next_state))
-
+			if done: q_values_target[action] = reward
+			else: q_values_target[action] = reward + discount_factor * np.max(self.nn.predict(next_state))
+			
 			# update monitor metrics
 			total_reward += reward
 			steps += 1

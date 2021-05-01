@@ -11,11 +11,10 @@ class NeuralNetwork:
 		"""
         self.n_neurons = n_neurons
         if path == None:
-            self.biases = [np.random.uniform(low=-0.5, high=0.5, size=(layer)) for layer in n_neurons[1:]]
-            self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i])) for i in range(len(n_neurons) - 1)]
+            self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
         else:
             with open(path, "rb") as file:
-                self.weights, self.biases = pk.load(file)
+                self.weights = pk.load(file)
 
     def predict(self, input: np.ndarray) -> np.ndarray:
         """
@@ -25,9 +24,9 @@ class NeuralNetwork:
 		Return:
 			prediction: np.ndarray 1dim
 		"""
-        for weights, biases, activation_function in zip(self.weights, self.biases, self.activation_functions):
-            input = activation_function(weights.dot(input) + biases)
-        return input##########quaaa
+        for weights, activation_function in zip(self.weights, self.activation_functions):
+            input = activation_function(weights.dot(np.append(input, 1)))
+        return input
 
     def forward_propagate(self, input: np.array) -> (list[np.ndarray],  list[np.ndarray]):
         """
@@ -39,11 +38,9 @@ class NeuralNetwork:
         """
         z = [input]
         a = [input]
-        for weights, biases, activation_function in zip(self.weights, self.biases, self.activation_functions):
-            z_ = weights.dot(input) + biases
-            z.append(z_)
-            input = activation_function(z_)
-            a.append(input)
+        for weights, activation_function in zip(self.weights, self.activation_functions):
+            z.append(weights.dot(np.append(a[-1], 1)))
+            a.append(activation_function(z[-1]))
         return z, a
     
     def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float):
@@ -59,15 +56,18 @@ class NeuralNetwork:
         gradients_z = gradients_a * self.activation_functions_derivative[-1](z[-1])
         
         # update weights and biases, and compute gradients for hidden layers
-        for weights, biases, z, a, activation_function_derivative in reversed(list(zip(self.weights[1:], self.biases[1:], z[1:-1], a[1:-1], self.activation_functions_derivative[:-1]))):
-            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(a.reshape(1, -1))
-            biases -= learning_rate * gradients_z
-            gradients_a = weights.T.dot(gradients_z)
-            gradients_z = gradients_a * activation_function_derivative(z)
+        for weights, z_layer, a_layer, activation_function_derivative in reversed(list(zip(self.weights[1:], z[1:-1], a[1:-1], self.activation_functions_derivative[:-1]))):
+            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(np.append(a_layer, 1).reshape(1, -1))
+            gradients_a = weights.T.dot(gradients_z)[:-1]
+            gradients_z = gradients_a * activation_function_derivative(z_layer)
 
         #update first weights and biases
-        self.weights[0] -= learning_rate * gradients_z.reshape(-1, 1).dot(a[0].reshape(1, -1))
-        self.biases[0] -= learning_rate * gradients_z
+        self.weights[0] -= learning_rate * gradients_z.reshape(-1, 1).dot(np.append(a[0], 1).reshape(1, -1))
+        
+        # check weights integrity
+        if any([any([any(np.isnan(weights)) for weights in weights]) for weights in self.weights]):
+            raise Exception('NaN weights')
+        
     def save(self, path: str):
         with open(path, "wb") as file:
-            pk.dump((self.weights, self.biases), file)
+            pk.dump(self.weights, file)

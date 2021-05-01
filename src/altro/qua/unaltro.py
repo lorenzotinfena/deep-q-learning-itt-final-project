@@ -3,7 +3,6 @@ import numpy as np
 from collections import deque
 import warnings
 
-
 env=gym.make('CartPole-v1')
 
 def relu(mat):
@@ -17,21 +16,17 @@ class NNLayer:
     def __init__(self, input_size, output_size, activation=None, lr = 0.001):
         self.input_size = input_size
         self.output_size = output_size
-        self.weights = np.random.uniform(low=-0.5, high=0.5, size=(input_size, output_size))
-        print('LAYER')
-        print(str(self.weights))
+        self.weights = np.random.uniform(low=-0.5, high=0.5, size=(output_size, input_size)).T
+
         self.activation_function = activation
         self.lr = lr
 
     # Compute the forward pass for this layer
     def forward(self, inputs, remember_for_backprop=True):
-        # inputs has shape batch_size x layer_input_size 
         input_with_bias = np.append(inputs,1)
         unactivated = np.dot(input_with_bias, self.weights)
-        # store variables for backward pass
         output = unactivated
         if self.activation_function != None:
-            # assuming here the activation function is relu, this can be made more robust
             output = self.activation_function(output)
         if remember_for_backprop:
             self.backward_store_in = input_with_bias
@@ -39,16 +34,17 @@ class NNLayer:
         return output    
         
     def update_weights(self, gradient):
-        self.weights = self.weights - self.lr*gradient
+        self.weights -= self.lr*gradient
         
     def backward(self, gradient_from_above):
         adjusted_mul = gradient_from_above
         # this is pointwise
         if self.activation_function != None:
             adjusted_mul = np.multiply(relu_derivative(self.backward_store_out),gradient_from_above)
-            
-        D_i = np.dot(np.transpose(np.reshape(self.backward_store_in, (1, len(self.backward_store_in)))), np.reshape(adjusted_mul, (1,len(adjusted_mul))))
-        delta_i = np.dot(adjusted_mul, np.transpose(self.weights))[:-1]
+        
+        D_i = self.backward_store_in.reshape(-1, 1).dot(adjusted_mul.reshape(1, -1))
+        #print(np.sum(D_i))
+        delta_i = self.weights.dot(adjusted_mul)[:-1]
         self.update_weights(D_i)
         return delta_i
         
@@ -108,18 +104,23 @@ NUM_EPISODES = 10000
 MAX_TIMESTEPS = 1000
 model = RLAgent(env)
 
-# The main program loop
-for i_episode in range(NUM_EPISODES):
-    observation = env.reset()
-    # Iterating through time steps within an episode
-    for t in range(MAX_TIMESTEPS):
-        action = model.select_action(observation)
-        prev_obs = observation
-        observation, reward, done, info = env.step(action)
-        # Keep a store of the agent's experiences
-        model.update(done, action, observation, prev_obs)
-        # epsilon decay
-        if done:
-            # If the pole has tipped over, end this episode
-            print('Episode {} ended after {} timesteps'.format(i_episode, t+1))
-            break
+def main():
+    # The main program loop
+    for i_episode in range(NUM_EPISODES):
+        env.seed(0)
+        observation = env.reset()
+        # Iterating through time steps within an episode
+        for t in range(MAX_TIMESTEPS):
+            action = model.select_action(observation)
+            prev_obs = observation
+            observation, reward, done, info = env.step(action)
+
+            # Keep a store of the agent's experiences
+            model.update(done, action, observation, prev_obs)
+            # epsilon decay
+            if done:
+                # If the pole has tipped over, end this episode
+                print('Episode {} ended after {} timesteps'.format(i_episode, t+1))
+                break
+if __name__ == '__main__':
+    main()

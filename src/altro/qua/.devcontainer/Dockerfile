@@ -21,6 +21,7 @@ RUN pip install -r /tmp/pip-requirements.txt
 RUN rm /tmp/pip-requirements.txt
 
 # fix
-RUN cd /usr/local/lib/ \
+RUN cd /tmp/ \
        git clone https://github.com/openai/gym.git \
-       pip install ./gym
+       pip install -e ./gym \
+       rm gym
