@@ -2,16 +2,9 @@ import numpy as np
 import pickle as pk
 from core.NeuralNetwork import NeuralNetwork
 
-class CustomNeuralNetwork(NeuralNetwork):
-    def __init__(self, n_neurons: np.array, path: str = None):
-        """
-        args:
-            n_neurons: np.array
-                number of neurons per layer
-			path: path to weights and biases dumped
-		"""
-        super().__init__(n_neurons, path)
-
+class CartPoleNeuralNetwork(NeuralNetwork):
+    def __init__(self):
+        super().__init__([4, 5, 5, 2])
 
         def identity(x): return x
         def identity_derivative(x): return np.ones(len(x))
