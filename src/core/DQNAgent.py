@@ -69,7 +69,7 @@ class DQNAgent:
 		"""
 		if optimize:
 			# backup weights
-			original_weights = self.nn.weights
+			original_weights = self.nn.weights.copy()
 		
 		# initialize metrics
 		total_reward = 0
