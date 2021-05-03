@@ -1,6 +1,7 @@
 # %%
 from core.DQNAgent import DQNAgent
-from core.CartPoleNeuralNetwork import CartPoleNeuralNetwork
+from cartpole.CartPoleNeuralNetwork import CartPoleNeuralNetwork
+from cartpole.CartPoleWrapper import CartPoleWrapper
 import gym
 import numpy as np
 import torch
@@ -12,7 +13,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from itertools import cycle
-from CartPoleWrapper import CartPoleWrapper
 import sys
 
 import pyvirtualdisplay
@@ -20,52 +20,47 @@ _display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
 _ = _display.start()
 
 def plot_videos(videos_path='.', output_file_path='.'):
-  stringa = 'ffmpeg -i \"concat:'
-  elenco_video = glob.glob(f'{videos_path}/*.mp4')
-  if len(elenco_video) == 0:
-      print('0 mp4 found in this path')
-      return
-  elenco_file_temp = []
-  for f in elenco_video:
-    file = videos_path + '/temp' + str(elenco_video.index(f) + 1) + '.ts'
-    os.system('ffmpeg -i ' + f + ' -c copy -bsf:v h264_mp4toannexb -f mpegts ' + file)
-    elenco_file_temp.append(file)
-  for f in elenco_file_temp:
-    stringa += f
-    if elenco_file_temp.index(f) != len(elenco_file_temp)-1:
-      stringa += '|'
-    else:
-      stringa += f'\" -c copy -y -bsf:a aac_adtstoasc {output_file_path}'
-  os.system(stringa)
-  display(Video(output_file_path))
+	stringa = 'ffmpeg -i \"concat:'
+	elenco_video = glob.glob(f'{videos_path}/*.mp4')
+	if len(elenco_video) == 0:
+		print('0 mp4 found in this path')
+		return
+	elenco_file_temp = []
+	for f in elenco_video:
+		file = videos_path + '/temp' + str(elenco_video.index(f) + 1) + '.ts'
+		os.system('ffmpeg -i ' + f + ' -c copy -bsf:v h264_mp4toannexb -f mpegts ' + file)
+		elenco_file_temp.append(file)
+	for f in elenco_file_temp:
+		stringa += f
+		if elenco_file_temp.index(f) != len(elenco_file_temp)-1:
+			stringa += '|'
+		else:
+			stringa += f'\" -c copy -y -bsf:a aac_adtstoasc {output_file_path}'
+	os.system(stringa)
+	display(Video(output_file_path))
 
 def plot_metrics():
     cycol = cycle('bgrcmk')
-    f, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    f, (ax1, ax2) = plt.subplots(1, 2)
 
     samples = 20
-    metrics = [n_episodes, total_rewards, number_steps, total_rewards]
-    for metric in metrics:
-        metric.append([np.array(metric[-(metric%samples):]).mean()] * (metric/samples - metric%samples))
-        metric = np.array(metric).reshape(samples, -1).mean(axis=1)
 
-    number_steps.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
-    number_steps = np.array(total_rewards).reshape(samples, -1).mean(axis=1)
+    n_episodes.append([np.array(n_episodes[-(n_episodes%samples):]).mean()] * (n_episodes/samples - n_episodes%samples))
+    n_episodes = np.array(n_episodes).reshape(samples, -1).mean(axis=1)
 
-    total_rewards.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
+	total_rewards.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
     total_rewards = np.array(total_rewards).reshape(samples, -1).mean(axis=1)
-    
-    ax1.set_xlabel('episodes')
+
+	number_steps.append([np.array(number_steps[-(number_steps%samples):]).mean()] * (number_steps/samples - number_steps%samples))
+    number_steps = np.array(number_steps).reshape(samples, -1).mean(axis=1)
+
+   	ax1.set_xlabel('episodes')
     ax1.set_ylabel('total_rewards')
     ax1.plot(n_episodes, total_rewards, c=next(cycol))
     
     ax2.set_xlabel('episodes')
     ax2.set_ylabel('number_steps')
-    ax2.plot(episodes, number_steps, c=next(cycol))
-
-    ax3.set_xlabel('episodes')
-    ax3.set_ylabel('cost_function_means')
-    ax3.plot(episodes, cost_means, c=next(cycol))
+    ax2.plot(n_episodes, number_steps, c=next(cycol))
     
     f.tight_layout()
 
@@ -73,15 +68,15 @@ def plot_metrics():
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-np.random.seed(2)
-agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")), nn=CartPoleNeuralNetwork())
+np.random.seed(1000)
+agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1)
 
 DISCOUNT_FACTOR = 0.95
-LEARNING_RATE = 0.00001
+LEARNING_RATE = 0.001
 
 total_rewards = []
 number_steps = []
-cost_means = []
 n_episodes = []
 total_episodes = 0
 
@@ -90,18 +85,17 @@ total_episodes = 0
 # Training
 # %%
 while True:
-    total_reward, steps, mean_cost_function = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=False, optimize=False)
-    print(f'\nn_episodes_training: {n_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}\tmean_cost_function:{mean_cost_function}', flush = True)
-    s.append(total_reward)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=False, optimize=False)
+    print(f'\ntotal_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}\tmean_cost_function:{mean_cost_function}', flush = True)
+    total_rewards.append(total_reward)
     number_steps.append(steps)
-    cost_means.append(mean_cost_function)
     n_episodes.append(total_episodes)
 
-    for i in tqdm(range(1000), 'learning...'):
+    for i in tqdm(range(500), 'learning...'):
         agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, 1)
     total_episodes += i+1
 
-    if n_episodes % 110 == 0:
+    if total_episodes % 110 == 0:
         agent.nn.save(f'saves/data{total_episodes}.nn')
 
 

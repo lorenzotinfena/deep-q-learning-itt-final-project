@@ -1,6 +1,7 @@
 import numpy as np
 import pickle as pk
 
+
 class NeuralNetwork:
     def __init__(self, n_neurons: np.array):
         """

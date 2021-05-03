@@ -1,13 +1,17 @@
-import gym
-from gym import wrappers
-from core.NeuralNetwork import NeuralNetwork
-import random
-import numpy as np
 import pickle as pk
+import random
+
+import gym
+import numpy as np
+from gym import wrappers
+
+from core.neural_network import NeuralNetwork
+from core.replay_memory import ReplayMemory
+
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
-	def __init__(self, env: gym.Env, nn: NeuralNetwork):
+	def __init__(self, env: gym.Env, nn: NeuralNetwork, replay_memory_max_size):
 		"""
 		Args:
 			env: enviroment to use
@@ -20,6 +24,7 @@ class DQNAgent:
 		"""
 		self.env = env
 		self.nn = nn
+		self._replay_memory = ReplayMemory(max_size=replay_memory_max_size)
 	
 	def start_episode(self, discount_factor, learning_rate, exploration_epsilon: float = 0):
 		""" start the episode, finish when enviroment return done=True
@@ -33,7 +38,7 @@ class DQNAgent:
 		"""
 		# get the first state
 		current_state = self.env.reset()
-
+		#TODO FAI ANCHE QUESTA FUNZIONA COL CASSO DE MINIBATCH GD E REPLAY MEMORYYY
 		done = False
 		while not done:
 			# choose action
@@ -74,42 +79,48 @@ class DQNAgent:
 		# initialize metrics
 		total_reward = 0
 		steps = 0
-		costs = []
 
 		# get the first state
-		current_state = self.env.reset()
+		state = self.env.reset()
 
 		done = False
 		while not done:
 			# choose action
-			a, z = self.nn.forward_propagate(current_state)
-			q_values_predicted = a[-1]
-			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
+			if np.random.uniform(0, 1) < exploration_epsilon:
+				action = self.env.action_space.sample()
+			else:
+				action = np.argmax(self.nn.predict(state))
 
 			# render
 			if render: self.env.render()
 			
 			# execute action
 			next_state, reward, done, _ = self.env.step(action)
-			
-			# find target q(s)
-			q_values_target = np.copy(q_values_predicted)
-			if done: q_values_target[action] = reward
-			else: q_values_target[action] = reward + discount_factor * np.max(self.nn.predict(next_state))
-			
+
 			# update monitor metrics
 			total_reward += reward
 			steps += 1
-			costs.append(self.nn.cost_function(q_values_predicted, q_values_target))
 			
-			# update neural network
-			self.nn.backpropagate(z, a, q_values_target, learning_rate)
+			# store experience
+			self._replay_memory.put(state, action, reward, done, next_state)
+			
+			if self._replay_memory.is_full():
+				# get experience batch from replay memory
+				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self.batch_size):
+					# find target q(s)
+					z, a = self.nn.forward_propagate(state_exp)
+					q_values_target = np.copy(a[-1])
+					if done: q_values_target[action_exp] = reward_exp
+					else: q_values_target[action_exp] = reward_exp + discount_factor * np.max(self.nn.predict(next_state_exp))
+					
+					# update neural network
+					self.nn.backpropagate(z, a, q_values_target, learning_rate)
 
 			# set current state
-			current_state = next_state
+			state = next_state
 
 		# restore original weights
 		if optimize:
 			self.nn.weights = original_weights
 
-		return total_reward, steps, np.mean(costs)
+		return total_reward, steps
