@@ -1,3 +1,6 @@
 {
-    "python.formatting.provider": "autopep8"
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": "",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1
 }

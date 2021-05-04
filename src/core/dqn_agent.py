@@ -11,7 +11,7 @@ from core.replay_memory import ReplayMemory
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
-	def __init__(self, env: gym.Env, nn: NeuralNetwork, replay_memory_max_size):
+	def __init__(self, env: gym.Env, nn: NeuralNetwork, replay_memory_max_size, batch_size):
 		"""
 		Args:
 			env: enviroment to use
@@ -25,6 +25,7 @@ class DQNAgent:
 		self.env = env
 		self.nn = nn
 		self._replay_memory = ReplayMemory(max_size=replay_memory_max_size)
+		self._batch_size = batch_size
 	
 	def start_episode(self, discount_factor, learning_rate, exploration_epsilon: float = 0):
 		""" start the episode, finish when enviroment return done=True
@@ -72,7 +73,7 @@ class DQNAgent:
 			render: if env is rendered at each step
 			optimize: if nn optimization in saved after this episode
 		"""
-		if optimize:
+		if not optimize:
 			# backup weights
 			original_weights = self.nn.weights.copy()
 		
@@ -106,7 +107,7 @@ class DQNAgent:
 			
 			if self._replay_memory.is_full():
 				# get experience batch from replay memory
-				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self.batch_size):
+				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
 					# find target q(s)
 					z, a = self.nn.forward_propagate(state_exp)
 					q_values_target = np.copy(a[-1])
@@ -120,7 +121,7 @@ class DQNAgent:
 			state = next_state
 
 		# restore original weights
-		if optimize:
+		if not optimize:
 			self.nn.weights = original_weights
 
 		return total_reward, steps
