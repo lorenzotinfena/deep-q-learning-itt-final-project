@@ -1,7 +1,7 @@
 # %%
-from core.DQNAgent import DQNAgent
-from cartpole.CartPoleNeuralNetwork import CartPoleNeuralNetwork
-from cartpole.CartPoleWrapper import CartPoleWrapper
+from core.dqn_agent import DQNAgent
+from cartpole.cartpole_neural_network import CartPoleNeuralNetwork
+from cartpole.cartpole_wrapper import CartPoleWrapper
 import gym
 import numpy as np
 import torch
@@ -48,13 +48,13 @@ def plot_metrics():
     n_episodes.append([np.array(n_episodes[-(n_episodes%samples):]).mean()] * (n_episodes/samples - n_episodes%samples))
     n_episodes = np.array(n_episodes).reshape(samples, -1).mean(axis=1)
 
-	total_rewards.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
+    total_rewards.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
     total_rewards = np.array(total_rewards).reshape(samples, -1).mean(axis=1)
 
-	number_steps.append([np.array(number_steps[-(number_steps%samples):]).mean()] * (number_steps/samples - number_steps%samples))
+    number_steps.append([np.array(number_steps[-(number_steps%samples):]).mean()] * (number_steps/samples - number_steps%samples))
     number_steps = np.array(number_steps).reshape(samples, -1).mean(axis=1)
 
-   	ax1.set_xlabel('episodes')
+    ax1.set_xlabel('episodes')
     ax1.set_ylabel('total_rewards')
     ax1.plot(n_episodes, total_rewards, c=next(cycol))
     

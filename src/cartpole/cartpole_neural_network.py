@@ -1,6 +1,6 @@
 import numpy as np
 import pickle as pk
-from core.NeuralNetwork import NeuralNetwork
+from core.neural_network import NeuralNetwork
 
 class CartPoleNeuralNetwork(NeuralNetwork):
     def __init__(self):
