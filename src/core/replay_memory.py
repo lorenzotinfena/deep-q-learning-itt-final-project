@@ -7,7 +7,7 @@ class ReplayMemory():
         self._buffer = deque(maxlen=max_size)
     
     def is_full(self):
-        return len(self._buffer) == self._max_size
+        return len(self._buffer) == 250
 
     def put(self, state, action, reward, done, next_state):
         #self._buffer.append((state, action, reward, done, next_state))

@@ -39,40 +39,40 @@ def plot_videos(videos_path='.', output_file_path='.'):
 	os.system(stringa)
 	display(Video(output_file_path))
 
-def plot_metrics():
-    total_rewards = total_rewards[:len(number_steps)]
-    total_rewards = total_rewards[:len(number_steps)]
+def plot_metrics(_n_episodes, _total_rewards, number_steps):
+    count = len(number_steps)
+    _n_episodes = n_episodes[:count].copy()
+    _total_rewards = total_rewards[:count].copy()
+    
     cycol = cycle('bgrcmk')
     f, (ax1, ax2) = plt.subplots(1, 2)
 
     samples = 20
-
-    total_rewards.append([np.array(total_rewards[-(total_rewards%samples):]).mean()] * (total_rewards/samples - total_rewards%samples))
-    total_rewards = np.array(total_rewards).reshape(samples, -1).mean(axis=1)
+    _n_episodes.extend([np.array(_n_episodes[-(count%samples):]).mean()] * (samples - count%samples))
+    _n_episodes = np.array(_n_episodes).reshape(-1, samples).mean(axis=1)
     
-    n_episodes.append([np.array(n_episodes[-(n_episodes%samples):]).mean()] * (n_episodes/samples - n_episodes%samples))
-    n_episodes = np.array(n_episodes).reshape(samples, -1).mean(axis=1)
-
-    number_steps.append([np.array(number_steps[-(number_steps%samples):]).mean()] * (number_steps/samples - number_steps%samples))
-    number_steps = np.array(number_steps).reshape(samples, -1).mean(axis=1)
+    _total_rewards.extend([np.array(_total_rewards[-(count%samples):]).mean()] * (samples - count%samples))
+    _total_rewards = np.array(_total_rewards).reshape(-1, samples).mean(axis=1)
+    
+    number_steps.extend([np.array(number_steps[-(count%samples):]).mean()] * (samples - count%samples))
+    number_steps = np.array(number_steps).reshape(-1, samples).mean(axis=1)
 
     ax1.set_xlabel('episodes')
-    ax1.set_ylabel('total_rewards')
-    ax1.plot(n_episodes, total_rewards, c=next(cycol))
+    ax1.set_ylabel('_total_rewards')
+    ax1.plot(_n_episodes, _total_rewards, c=next(cycol))
     
     ax2.set_xlabel('episodes')
     ax2.set_ylabel('number_steps')
-    ax2.plot(n_episodes, number_steps, c=next(cycol))
+    ax2.plot(_n_episodes, number_steps, c=next(cycol))
     
     f.tight_layout()
-
 
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
 #np.random.seed(1000)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=500, batch_size=20)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=500, batch_size=250)
 
 DISCOUNT_FACTOR = 0.99
 LEARNING_RATE = 0.001
@@ -86,14 +86,14 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-while total_episodes < 1000:
+while total_episodes <= 10000:
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=False, optimize=False)
     print(f'\ntotal_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}', flush = True)
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
-    for i in tqdm(range(200), 'learning...'):
+    for i in tqdm(range(50), 'learning...'):
         agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 1, render=False, optimize=True)
     total_episodes += i+1
 
@@ -104,7 +104,7 @@ while total_episodes < 1000:
 # %% [markdown]
 # Visualize training metrics
 # %%
-plot_metrics()
+plot_metrics(n_episodes, total_rewards, number_steps)
 
 
 # %% [markdown]
