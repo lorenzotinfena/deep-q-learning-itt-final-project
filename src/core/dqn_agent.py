@@ -105,7 +105,7 @@ class DQNAgent:
 			# store experience
 			self._replay_memory.put(state, action, reward, done, next_state)
 			
-			if self._replay_memory.is_full():
+			if len(self._replay_memory) >= self._batch_size:
 				# get experience batch from replay memory
 				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
 					# find target q(s)
@@ -116,6 +116,10 @@ class DQNAgent:
 					
 					# update neural network
 					self.nn.backpropagate(z, a, q_values_target, learning_rate)
+				
+				#if exploration_epsilon > 0.01:
+				#	exploration_epsilon *= 0.995
+				#else: exploration_epsilon = 0.01
 
 			# set current state
 			state = next_state

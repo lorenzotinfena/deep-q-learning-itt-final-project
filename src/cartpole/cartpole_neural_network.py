@@ -26,7 +26,7 @@ class CartPoleNeuralNetwork(NeuralNetwork):
             cost_function_derivative: function(predicted: np.array, target: np.array)->np.array
                 partial derivatives of cost_function respect to predicted values
 		"""
-        self._activation_functions = [ReLU, ReLU, identity]
-        self._activation_functions_derivative = [ReLU_derivative, ReLU_derivative, identity_derivative]
+        self._activation_functions = [ReLU, identity]
+        self._activation_functions_derivative = [ReLU_derivative, identity_derivative]
         self.cost_function = sum_square_error
         self._cost_function_derivative = sum_square_error_derivative

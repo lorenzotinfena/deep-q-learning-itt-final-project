@@ -39,10 +39,11 @@ def plot_videos(videos_path='.', output_file_path='.'):
 	os.system(stringa)
 	display(Video(output_file_path))
 
-def plot_metrics(_n_episodes, _total_rewards, number_steps):
+def plot_metrics(n_episodes, total_rewards, number_steps):
     count = len(number_steps)
     _n_episodes = n_episodes[:count].copy()
     _total_rewards = total_rewards[:count].copy()
+    _number_steps = number_steps.copy()
     
     cycol = cycle('bgrcmk')
     f, (ax1, ax2) = plt.subplots(1, 2)
@@ -54,8 +55,8 @@ def plot_metrics(_n_episodes, _total_rewards, number_steps):
     _total_rewards.extend([np.array(_total_rewards[-(count%samples):]).mean()] * (samples - count%samples))
     _total_rewards = np.array(_total_rewards).reshape(-1, samples).mean(axis=1)
     
-    number_steps.extend([np.array(number_steps[-(count%samples):]).mean()] * (samples - count%samples))
-    number_steps = np.array(number_steps).reshape(-1, samples).mean(axis=1)
+    _number_steps.extend([np.array(_number_steps[-(count%samples):]).mean()] * (samples - count%samples))
+    _number_steps = np.array(_number_steps).reshape(-1, samples).mean(axis=1)
 
     ax1.set_xlabel('episodes')
     ax1.set_ylabel('_total_rewards')
@@ -63,18 +64,18 @@ def plot_metrics(_n_episodes, _total_rewards, number_steps):
     
     ax2.set_xlabel('episodes')
     ax2.set_ylabel('number_steps')
-    ax2.plot(_n_episodes, number_steps, c=next(cycol))
+    ax2.plot(_n_episodes, _number_steps, c=next(cycol))
     
     f.tight_layout()
 
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-#np.random.seed(1000)
+np.random.seed(1000)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=500, batch_size=250)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=250, batch_size=30)
 
-DISCOUNT_FACTOR = 0.99
+DISCOUNT_FACTOR = 0.95
 LEARNING_RATE = 0.001
 
 n_episodes = []
@@ -86,15 +87,15 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-while total_episodes <= 10000:
+while total_episodes <= 600:
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=False, optimize=False)
     print(f'\ntotal_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}', flush = True)
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
-    for i in tqdm(range(50), 'learning...'):
-        agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 1, render=False, optimize=True)
+    for i in tqdm(range(20), 'learning...'):
+        agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0.5, render=False, optimize=True)
     total_episodes += i+1
 
     if total_episodes % 2000 == 0:
@@ -113,13 +114,13 @@ plot_metrics(n_episodes, total_rewards, number_steps)
 agent.env = gym.wrappers.Monitor(agent.env, 'recording/tmp-videos', force=True, video_callable=lambda episode_id: True)
 #agent.nn.load('saves/data396000.nn')
 
-for i in range(2):
+for i in range(10):
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=True, optimize=False)
     print(f'{i}\t{steps}\t{total_reward}')
 agent.env.close()
 
 agent.env = agent.env.env
-plot_videos('recording/tmp-videos', f'recording/{396000}-episodes.mp4')
+plot_videos('recording/tmp-videos', f'recording/ouuuuuuuuu-episodes.mp4')
 
 
 # %% [markdown]
