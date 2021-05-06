@@ -2,7 +2,8 @@ import pickle as pk
 
 import numpy as np
 from copy import deepcopy
-
+import os
+from pathlib import Path
 class NeuralNetwork:
     def __init__(self, n_neurons: np.array):
         """
@@ -15,6 +16,7 @@ class NeuralNetwork:
         self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
 
     def save_weights(self, path: str):
+        os.makedirs(Path(path).parent, exist_ok=True)
         with open(path, "wb") as file:
             pk.dump(self.weights, file)
 

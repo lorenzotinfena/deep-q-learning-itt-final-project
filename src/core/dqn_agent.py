@@ -7,7 +7,7 @@ from gym import wrappers
 
 from core.neural_network import NeuralNetwork
 from core.replay_memory import ReplayMemory
-
+from copy import copy
 class DQNAgent:
 	""" Deep Q learning agent
 	"""
@@ -23,7 +23,8 @@ class DQNAgent:
 				and action_space is discrete:------------------------
 		"""
 		self.env = env
-		self._target_nn = self._nn = nn
+		self._nn = nn
+		self._target_nn = copy(self._nn)
 		self._sync_target_nn_weights()
 		self._replay_memory = ReplayMemory(max_size=replay_memory_max_size)
 		self._batch_size = batch_size
