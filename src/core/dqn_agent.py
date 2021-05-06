@@ -39,7 +39,7 @@ class DQNAgent:
 		"""
 		# get the first state
 		current_state = self.env.reset()
-		#TODO FAI ANCHE QUESTA FUNZIONA COL CASSO DE MINIBATCH GD E REPLAY MEMORYYY
+		
 		done = False
 		while not done:
 			# choose action
@@ -61,7 +61,8 @@ class DQNAgent:
 			# set current state
 			current_state = next_state
 		
-	def start_episode_and_evaluate(self, discount_factor: float, learning_rate: float, exploration_epsilon: float = 0, render=False, optimize=True):
+	def start_episode_and_evaluate(self, discount_factor, learning_rate,
+                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, render=False, optimize=True):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -69,7 +70,9 @@ class DQNAgent:
 				0 <= discount_factor <= 1
 			learning_rate: with how much strength you want to learn
 				0 < learning_rate
-			exploration_epsilon: exploration probability
+			epsilon: exploration epsilon
+			epsilon_decay: epsilon decrease factor at every optimization
+			min_epsilon: minimum epsilon value
 			render: if env is rendered at each step
 			optimize: if nn optimization in saved after this episode
 		"""
@@ -87,7 +90,7 @@ class DQNAgent:
 		done = False
 		while not done:
 			# choose action
-			if np.random.uniform(0, 1) < exploration_epsilon:
+			if np.random.uniform(0, 1) < epsilon:
 				action = self.env.action_space.sample()
 			else:
 				action = np.argmax(self.nn.predict(state))
@@ -117,15 +120,16 @@ class DQNAgent:
 					# update neural network
 					self.nn.backpropagate(z, a, q_values_target, learning_rate)
 				
-				#if exploration_epsilon > 0.01:
-				#	exploration_epsilon *= 0.995
-				#else: exploration_epsilon = 0.01
+				# epsilon-decay algorithm
+				epsilon *= epsilon_decay
+				if epsilon < min_epsilon:
+					epsilon = min_epsilon
 
 			# set current state
 			state = next_state
 
-		# restore original weights
 		if not optimize:
+			# restore original weights
 			self.nn.weights = original_weights
 
 		return total_reward, steps
