@@ -1,7 +1,7 @@
 import pickle as pk
 
 import numpy as np
-
+from copy import deepcopy
 
 class NeuralNetwork:
     def __init__(self, n_neurons: np.array):
@@ -14,6 +14,17 @@ class NeuralNetwork:
         self._n_neurons = n_neurons
         self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
 
+    def save_weights(self, path: str):
+        with open(path, "wb") as file:
+            pk.dump(self.weights, file)
+
+    def load_weights(self, path: str):
+        with open(path, 'rb') as file:
+            self.weights = pk.load(file)
+    
+    def clone_weights(self):
+        return deepcopy(self.weights)
+                
     def predict(self, input: np.ndarray) -> np.ndarray:
         """
 		Args:
@@ -25,14 +36,6 @@ class NeuralNetwork:
         for weights, activation_function in zip(self.weights, self._activation_functions):
             input = activation_function(weights.dot(np.append(input, 1)))
         return input
-    
-    def save(self, path: str):
-        with open(path, "wb") as file:
-            pk.dump(self.weights, file)
-
-    def load(self, path: str):
-        with open(path, 'rb') as file:
-                self.weights = pk.load(file)
 
     def forward_propagate(self, input: np.array) -> (list[np.ndarray],  list[np.ndarray]):
         """
