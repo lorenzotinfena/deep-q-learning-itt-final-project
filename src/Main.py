@@ -76,12 +76,12 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-np.random.seed(20)
+np.random.seed(40)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=5000, batch_size=30)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=2000, batch_size=20)
 
-DISCOUNT_FACTOR = 0.995
-LEARNING_RATE = 0.0001
+DISCOUNT_FACTOR = 0.99
+LEARNING_RATE = 0.001
 
 n_episodes = []
 total_rewards = []
@@ -92,7 +92,7 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-while total_episodes <= 10000:
+while total_episodes <= 5000:
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
     print(f'\ntotal_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}', flush = True)
     n_episodes.append(total_episodes)
@@ -100,7 +100,7 @@ while total_episodes <= 10000:
     number_steps.append(steps)
 
     for i in tqdm(range(50), 'learning...'):
-        agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01, render=False, optimize=True)
+        agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.997, min_epsilon=0.01, render=False, optimize=True)
     total_episodes += i+1
 
     if total_episodes % 50 == 0:

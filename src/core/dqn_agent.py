@@ -39,6 +39,7 @@ class DQNAgent:
 		self._target_nn.weights = self._nn.clone_weights()
 	
 	def start_episode(self, discount_factor, learning_rate, exploration_epsilon: float = 0):
+## THIS FUNCTION ISN'T COMPLETE, SEE THE NEXT ONE
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to
 		Args:
@@ -117,7 +118,7 @@ class DQNAgent:
 			steps += 1
 			
 			# store experience
-			self._replay_memory.put(state, action, reward, done, next_state)
+			if not optimize: self._replay_memory.put(state, action, reward, done, next_state)
 			
 			if len(self._replay_memory) >= self._batch_size:
 				# get experience batch from replay memory

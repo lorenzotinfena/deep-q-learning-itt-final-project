@@ -13,7 +13,7 @@ class NeuralNetwork:
 			path: path to weights and biases dumped
 		"""
         self._n_neurons = n_neurons
-        self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
+        self.weights = [np.random.uniform(low=-0.1, high=0.1, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
 
     def save_weights(self, path: str):
         os.makedirs(Path(path).parent, exist_ok=True)
