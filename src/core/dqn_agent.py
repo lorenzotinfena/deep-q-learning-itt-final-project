@@ -124,7 +124,7 @@ class DQNAgent:
 				# get experience batch from replay memory
 				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
 					# find target q(s)
-					z, a = self._target_nn.forward_propagate(state_exp)
+					z, a = self._nn.forward_propagate(state_exp)
 					q_values_target = np.copy(a[-1])
 					if done: q_values_target[action_exp] = reward_exp
 					else: q_values_target[action_exp] = reward_exp + discount_factor * np.max(self._target_nn.predict(next_state_exp))

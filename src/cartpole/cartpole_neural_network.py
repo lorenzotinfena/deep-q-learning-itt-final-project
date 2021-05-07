@@ -4,7 +4,7 @@ from core.neural_network import NeuralNetwork
 
 class CartPoleNeuralNetwork(NeuralNetwork):
     def __init__(self):
-        super().__init__([4, 20, 20, 2])
+        super().__init__([4, 5, 5, 2])
 
         def identity(x): return x
         def identity_derivative(x): return np.ones(len(x))
