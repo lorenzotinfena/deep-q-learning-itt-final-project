@@ -118,7 +118,7 @@ class DQNAgent:
 			steps += 1
 			
 			# store experience
-			if not optimize: self._replay_memory.put(state, action, reward, done, next_state)
+			if optimize: self._replay_memory.put(state, action, reward, done, next_state)
 			
 			if len(self._replay_memory) >= self._batch_size:
 				# get experience batch from replay memory
