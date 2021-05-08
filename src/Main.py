@@ -22,7 +22,6 @@ _display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
 _ = _display.start()
 
 def plot_videos(videos_path='recording', output_file_path='.'):
-	
 	stringa = 'ffmpeg -i \"concat:'
 	elenco_video = glob.glob(f'{videos_path}/*.mp4')
 	if len(elenco_video) == 0:
@@ -76,12 +75,12 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-
+np.random.seed(200)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1000, batch_size=5)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1000, batch_size=40)
 
-DISCOUNT_FACTOR = 0.98
-LEARNING_RATE = 0.001
+DISCOUNT_FACTOR = 0.99
+LEARNING_RATE = 0.0003
 
 n_episodes = []
 total_rewards = []
@@ -92,15 +91,18 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-while total_episodes <= 5000:
+if Path('saves').exists():
+	shutil.rmtree('saves')
+ 
+logger = tqdm(range(100))
+for _ in logger:
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
-    print('eii')
-    print(f'\ntotal_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}', flush = True)
+    logger.set_description(f'total_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
-    for i in tqdm(range(10), 'learning...'):
+    for i in range(10):
         agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01, render=False, optimize=True)
     total_episodes += i+1
 
@@ -120,9 +122,9 @@ plot_metrics(n_episodes, total_rewards, number_steps, -1)
 if Path('recording/tmp-videos').exists():
 	shutil.rmtree('recording/tmp-videos')
 agent.env = gym.wrappers.Monitor(agent.env, 'recording/tmp-videos', force=True, video_callable=lambda episode_id: True)
-agent.load_weights('saves/data700.nn')
+agent.load_weights('saves/data1150.nn')
 
-for i in range(2):
+for i in range(10):
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, 0, render=True, optimize=False)
     print(f'{i}\t{steps}\t{total_reward}')
 agent.env.close()

@@ -129,6 +129,16 @@ class DQNAgent:
 					if done: q_values_target[action_exp] = reward_exp
 					else: q_values_target[action_exp] = reward_exp + discount_factor * np.max(self._target_nn.predict(next_state_exp))
 					
+					
+					y = []
+     				x = []
+					for i in range(-100, 100, 0.01):
+						self._nn.weights[0][0][0] = i
+						x.append(i)
+						cost = self._nn.cost_function(a[-1], q_values_target)
+						y.append(cost)
+
+     
 					# update neural network
 					self._nn.backpropagate(z, a, q_values_target, learning_rate)
 				
