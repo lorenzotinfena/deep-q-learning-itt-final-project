@@ -14,6 +14,7 @@ class NeuralNetwork:
 		"""
         self._n_neurons = n_neurons
         self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
+        self.v = [np.zeros_like(weights) for weights in self.weights]
 
     def save_weights(self, path: str):
         os.makedirs(Path(path).parent, exist_ok=True)
@@ -26,6 +27,9 @@ class NeuralNetwork:
     
     def clone_weights(self):
         return deepcopy(self.weights)
+
+    def clone_v(self):
+        return deepcopy(self.v)
                 
     def predict(self, input: np.ndarray) -> np.ndarray:
         """
@@ -54,7 +58,7 @@ class NeuralNetwork:
             a.append(activation_function(z[-1]))
         return z, a
     
-    def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float):
+    def backpropagate(self, z: list[np.ndarray], a: list[np.ndarray], target_output: np.array, learning_rate: float, momentum: float):
         """
         Args:
             z: list[np.ndarray]
@@ -68,13 +72,16 @@ class NeuralNetwork:
         gradients_z = gradients_a * self._activation_functions_derivative[-1](z[-1])
         
         # update weights and biases, and compute gradients for hidden layers
-        for weights, z_layer, a_layer, activation_function_derivative in reversed(list(zip(self.weights[1:], z[1:-1], a[1:-1], self._activation_functions_derivative[:-1]))):
-            weights -= learning_rate * gradients_z.reshape(-1, 1).dot(np.append(a_layer, 1).reshape(1, -1))
+        for weights, v, z_layer, a_layer, activation_function_derivative in reversed(list(zip(self.weights[1:], self.v[1:], z[1:-1], a[1:-1], self._activation_functions_derivative[:-1]))):
+            v *= momentum
+            v += (1 - momentum) * gradients_z.reshape(-1, 1).dot(np.append(a_layer, 1).reshape(1, -1))
+            weights -= learning_rate * v
             gradients_a = weights.T.dot(gradients_z)[:-1]
             gradients_z = gradients_a * activation_function_derivative(z_layer)
 
         #update first weights and biases
-        self.weights[0] -= learning_rate * gradients_z.reshape(-1, 1).dot(np.append(a[0], 1).reshape(1, -1))
+        self.v[0] = momentum * self.v[0] + (1 - momentum) * gradients_z.reshape(-1, 1).dot(np.append(a[0], 1).reshape(1, -1))
+        self.weights[0] -= learning_rate * self.v[0]
         
         # check weights integrity
         if any([any([any(np.isnan(weights)) for weights in weights]) for weights in self.weights]):

@@ -38,43 +38,63 @@ class DQNAgent:
 	def _sync_target_nn_weights(self):
 		self._target_nn.weights = self._nn.clone_weights()
 	
-	def start_episode(self, discount_factor, learning_rate, exploration_epsilon: float = 0):
-## THIS FUNCTION ISN'T COMPLETE, SEE THE NEXT ONE
+	def start_episode(self, discount_factor, learning_rate,
+                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9):
 		""" start the episode, finish when enviroment return done=True
-			Use epsilon-greedy algorithm to
+			Use epsilon-greedy algorithm to 
 		Args:
 			discount_factor: how much the immediate rewards matter than future rewards
 				0 <= discount_factor <= 1
 			learning_rate: with how much strength you want to learn
 				0 < learning_rate
-			exploration_epsilon: exploration probability
+			epsilon: exploration epsilon
+			epsilon_decay: epsilon decrease factor at every optimization
+			min_epsilon: minimum epsilon value
+			render: if env is rendered at each step
+			optimize: if _nn optimization in saved after this episode
 		"""
 		# get the first state
-		current_state = self.env.reset()
-		
+		state = self.env.reset()
+
 		done = False
 		while not done:
 			# choose action
-			a, z = self._nn.forward_propagate(current_state)
-			q_values_predicted = a[-1]
-			action = self.env.action_space.sample()  if np.random.uniform(0, 1) < exploration_epsilon else np.argmax(q_values_predicted)
+			if np.random.uniform(0, 1) < epsilon:
+				action = self.env.action_space.sample()
+			else:
+				action = np.argmax(self._nn.predict(state))
 			
 			# execute action
 			next_state, reward, done, _ = self.env.step(action)
 			
-			# find target q(s)
-			q_values_target = np.copy(q_values_predicted)
-			if done: q_values_target[action] = reward
-			else: q_values_target[action] = reward + discount_factor * np.max(self._nn.predict(next_state))
-
-			# update neural network
-			self._nn.backpropagate(z, a, q_values_target, learning_rate)
+			# store experience
+			self._replay_memory.put(state, action, reward, done, next_state)
+			
+			if len(self._replay_memory) >= self._batch_size:
+				# get experience batch from replay memory
+				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
+					# find target q(s)
+					a, z = self._nn.forward_propagate(state_exp)
+					q_values_target = np.copy(a[-1])
+					if done: q_values_target[action_exp] = reward_exp
+					else: q_values_target[action_exp] = reward_exp + discount_factor * np.max(self._target_nn.predict(next_state_exp))
+					
+					# update neural network
+					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
+				
+				# sync target nn weights
+				self._sync_target_nn_weights()
+    
+				# epsilon-decay algorithm
+				epsilon *= epsilon_decay
+				if epsilon < min_epsilon:
+					epsilon = min_epsilon
 
 			# set current state
-			current_state = next_state
+			state = next_state
 		
 	def start_episode_and_evaluate(self, discount_factor, learning_rate,
-                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, render=False, optimize=True):
+                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9, render=False, optimize=True):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -91,6 +111,7 @@ class DQNAgent:
 		if not optimize:
 			# backup weights
 			original_weights = self._nn.clone_weights()
+			original_v = self._nn.clone_v()
 		
 		# initialize metrics
 		total_reward = 0
@@ -124,23 +145,13 @@ class DQNAgent:
 				# get experience batch from replay memory
 				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
 					# find target q(s)
-					z, a = self._nn.forward_propagate(state_exp)
+					a, z = self._nn.forward_propagate(state_exp)
 					q_values_target = np.copy(a[-1])
 					if done: q_values_target[action_exp] = reward_exp
 					else: q_values_target[action_exp] = reward_exp + discount_factor * np.max(self._target_nn.predict(next_state_exp))
 					
-					
-					y = []
-     				x = []
-					for i in range(-100, 100, 0.01):
-						self._nn.weights[0][0][0] = i
-						x.append(i)
-						cost = self._nn.cost_function(a[-1], q_values_target)
-						y.append(cost)
-
-     
 					# update neural network
-					self._nn.backpropagate(z, a, q_values_target, learning_rate)
+					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
 				
 				# sync target nn weights
 				self._sync_target_nn_weights()
@@ -157,5 +168,25 @@ class DQNAgent:
 			# restore original weights
 			self._nn.weights = original_weights
 			self._sync_target_nn_weights()
+			self._nn.v = original_v
 
 		return total_reward, steps
+	
+
+	def __plot_cost_function_changing_weight(self, l, i, j, input, target, minn=-1000, maxx=1000, step=0.1):
+		import matplotlib.pyplot as plt
+
+		_nn_mtp = copy(self._nn)
+		_nn_mtp.weights = self._nn.clone_weights()
+
+		y = []
+		x = []
+		for z in np.arange(minn, maxx, step):
+			_nn_mtp.weights[l][i][j] = z
+			x.append(z)
+			y.append(_nn_mtp.cost_function(_nn_mtp.predict(input), target))
+		
+		fig, ax = plt.subplots()
+		ax.plot(x, y)
+		ax.grid()
+		plt.show()

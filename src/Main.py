@@ -2,6 +2,7 @@
 from core.dqn_agent import DQNAgent
 from cartpole.cartpole_neural_network import CartPoleNeuralNetwork
 from cartpole.cartpole_wrapper import CartPoleWrapper
+from spaceinvaders.space_invaders_neural_network import SpaceInvadersNeuralNetwork
 import gym
 import numpy as np
 import torch
@@ -75,12 +76,13 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-np.random.seed(200)
+np.random.seed(500)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1000, batch_size=40)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1000, batch_size=50)
+agent.env.seed(500)
 
 DISCOUNT_FACTOR = 0.99
-LEARNING_RATE = 0.0003
+LEARNING_RATE = 0.0006
 
 n_episodes = []
 total_rewards = []
@@ -97,19 +99,66 @@ if Path('saves').exists():
 logger = tqdm(range(100))
 for _ in logger:
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
-    logger.set_description(f'total_episodes_training: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
+    logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
     for i in range(10):
-        agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01, render=False, optimize=True)
+        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01)
     total_episodes += i+1
 
     if total_episodes % 50 == 0:
         agent.save_weights(f'saves/data{total_episodes}.nn')
 
 
+# %%
+np.random.seed(500)
+agent = DQNAgent(env=gym.make("SpaceInvaders-ram-v0"),
+				nn=SpaceInvadersNeuralNetwork(), replay_memory_max_size=1000, batch_size=50)
+agent.env.seed(500)
+
+DISCOUNT_FACTOR = 0.99
+LEARNING_RATE = 0.0006
+
+n_episodes = []
+total_rewards = []
+number_steps = []
+total_episodes = 0
+# %% [markdown]
+# Training
+# %%
+if Path('saves').exists():
+	shutil.rmtree('saves')
+ 
+logger = tqdm(range(100))
+for _ in logger:
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
+    logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
+    n_episodes.append(total_episodes)
+    total_rewards.append(total_reward)
+    number_steps.append(steps)
+
+    for i in range(5):
+        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01)
+    total_episodes += i+1
+
+    if total_episodes % 50 == 0:
+        agent.save_weights(f'saves/data{total_episodes}.nn')
+# %%
+import gym
+
+def main():
+    env = gym.make("SpaceInvaders-ram-v0")
+    env.reset()
+    for i in range(10000):
+        print(i)
+        obs, rew, done, info = env.step(env.action_space.sample())
+        if done:
+            env.reset()
+
+if __name__ == "__main__":
+    main()
 # %% [markdown]
 # Visualize training metrics
 # %%
