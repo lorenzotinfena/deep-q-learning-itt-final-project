@@ -5,7 +5,7 @@ from functions import *
 
 class CartPoleNeuralNetwork(NeuralNetwork):
     def __init__(self):
-        super().__init__([4, 30, 30, 2])
+        super().__init__([4, 10, 10, 2])
         """
         Define in object functions:
             activation_functions: iter[len(n_neurons)-1] dtype:function(np.array)->np.array
