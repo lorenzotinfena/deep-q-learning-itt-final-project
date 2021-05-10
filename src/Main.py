@@ -18,6 +18,9 @@ import sys
 import shutil
 from pathlib import Path
 import shutil
+import retro
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import pyvirtualdisplay
 _display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
 _ = _display.start()
@@ -49,7 +52,6 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
     _number_steps = number_steps.copy()
     
     cycol = cycle('bgrcmk')
-    f, (ax1, ax2) = plt.subplots(1, 2)
 
     if num_samples == -1:
         num_samples = count
@@ -63,26 +65,36 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
     #_number_steps.extend([np.array(_number_steps[-(count%num_samples):]).mean()] * (num_samples - count%num_samples))
     #_number_steps = np.array(_number_steps).reshape(num_samples, -1).mean(axis=1)
 
-    ax1.set_xlabel('episodes')
-    ax1.set_ylabel('_total_rewards')
-    ax1.plot(_n_episodes, _total_rewards, c=next(cycol))
-    
-    ax2.set_xlabel('episodes')
-    ax2.set_ylabel('number_steps')
-    ax2.plot(_n_episodes, _number_steps, c=next(cycol))
-    
-    f.tight_layout()
+    fig = make_subplots(rows=1, cols=2)
+    fig.add_trace(
+        go.Scatter(x=_n_episodes, y=_total_rewards, mode='lines'),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Scatter(x=_n_episodes, y=_number_steps, mode='lines'),
+        row=1, col=2
+    )
+
+    fig.update_xaxes(title_text="Episodes", row=1, col=1)
+    fig.update_xaxes(title_text="Episodes", row=1, col=2)
+    fig.update_yaxes(title_text="Total rewards", row=1, col=1)
+    fig.update_yaxes(title_text="Steps", row=1, col=2)
+
+    fig.update_layout(height=600, width=800, showlegend=False)
+    fig.show()
 
 # %% [markdown]
 # Initialize deep Q-learning agent, neural network, and parameters
 # %%
-np.random.seed(500)
+seed = 800
+np.random.seed(seed)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=1000, batch_size=50)
-agent.env.seed(500)
+				nn=CartPoleNeuralNetwork(), replay_memory_max_size=5000, batch_size=20)
+agent.env.seed(seed)
 
 DISCOUNT_FACTOR = 0.99
-LEARNING_RATE = 0.0006
+LEARNING_RATE = 0.0001
 
 n_episodes = []
 total_rewards = []
@@ -93,33 +105,33 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-if Path('saves').exists():
-	shutil.rmtree('saves')
+if Path('saves/cartpole').exists():
+	shutil.rmtree('saves/cartpole')
  
 logger = tqdm(range(100))
 for _ in logger:
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
     logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
     for i in range(10):
-        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01)
+        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0.7, epsilon_decay=0.99, min_epsilon=0.01, momentum=0.5)
     total_episodes += i+1
 
     if total_episodes % 50 == 0:
-        agent.save_weights(f'saves/data{total_episodes}.nn')
+        agent.save_weights(f'saves/cartpole/data{total_episodes}.nn')
 
 
 # %%
 np.random.seed(500)
 agent = DQNAgent(env=gym.make("SpaceInvaders-ram-v0"),
-				nn=SpaceInvadersNeuralNetwork(), replay_memory_max_size=1000, batch_size=50)
+				nn=SpaceInvadersNeuralNetwork(), replay_memory_max_size=10000, batch_size=10)
 agent.env.seed(500)
 
 DISCOUNT_FACTOR = 0.99
-LEARNING_RATE = 0.0006
+LEARNING_RATE = 0
 
 n_episodes = []
 total_rewards = []
@@ -128,37 +140,31 @@ total_episodes = 0
 # %% [markdown]
 # Training
 # %%
-if Path('saves').exists():
-	shutil.rmtree('saves')
+if Path('saves/spaceinvaders').exists():
+	shutil.rmtree('saves/spaceinvaders')
  
 logger = tqdm(range(100))
 for _ in logger:
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.995, min_epsilon=0.01, render=False, optimize=True)
     logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
-    for i in range(5):
-        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01)
+    for i in range(0):
+        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.995, min_epsilon=0.01)
     total_episodes += i+1
 
     if total_episodes % 50 == 0:
-        agent.save_weights(f'saves/data{total_episodes}.nn')
-# %%
-import gym
+        agent.save_weights(f'saves/spaceinvaders/data{total_episodes}.nn')
 
-def main():
-    env = gym.make("SpaceInvaders-ram-v0")
-    env.reset()
-    for i in range(10000):
-        print(i)
-        obs, rew, done, info = env.step(env.action_space.sample())
-        if done:
-            env.reset()
-
-if __name__ == "__main__":
-    main()
+#%%
+env=retro.make(game='SpaceInvaders-Atari2600')
+env.reset()
+done = False
+while not done:
+    ne, re, done, _ = env.step(env.action_space.sample())
+    print(re)
 # %% [markdown]
 # Visualize training metrics
 # %%
