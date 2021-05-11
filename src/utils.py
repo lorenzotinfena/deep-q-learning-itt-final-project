@@ -43,20 +43,11 @@ def plot_videos(videos_path='recording', output_file_path='.'):
 	os.system(stringa)
 	display(Video(output_file_path))
 
-def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
+def plot_metrics(n_episodes, total_rewards, number_steps):
     count = len(number_steps)
     _n_episodes = n_episodes[:count].copy()
     _total_rewards = total_rewards[:count].copy()
     _number_steps = number_steps.copy()
-
-    if num_samples == -1:
-        num_samples = count
-    
-    _n_episodes = np.array(_n_episodes).reshape(num_samples, -1).mean(axis=1)
-
-    _total_rewards = np.array(_total_rewards).reshape(num_samples, -1).mean(axis=1)
-
-    _number_steps = np.array(_number_steps).reshape(num_samples, -1).mean(axis=1)
     
     fig = make_subplots(rows=1, cols=2)
     fig.add_trace(

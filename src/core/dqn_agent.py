@@ -181,19 +181,20 @@ class DQNAgent:
 	
 
 	def __plot_cost_function_changing_weight(self, l, i, j, input, target, minn=-1000, maxx=1000, step=0.1):
-		import matplotlib.pyplot as plt
+		import plotly.express as px
 
-		_nn_mtp = copy(self._nn)
-		_nn_mtp.weights = self._nn.clone_weights()
+
+		_nn_tmp = copy(self._nn)
+		_nn_tmp.weights = self._nn.clone_weights()
 
 		y = []
 		x = []
 		for z in np.arange(minn, maxx, step):
-			_nn_mtp.weights[l][i][j] = z
+			_nn_tmp.weights[l][i][j] = z
 			x.append(z)
-			y.append(_nn_mtp.cost_function(_nn_mtp.predict(input), target))
+			y.append(_nn_tmp.cost_function(_nn_tmp.predict(input), target))
 		
-		fig, ax = plt.subplots()
-		ax.plot(x, y)
-		ax.grid()
-		plt.show()
+		fig = px.line(x=x, y=y)
+		fig.update_xaxes(title_text="weight")
+		fig.update_yaxes(title_text="cost")
+		fig.show()
