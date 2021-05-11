@@ -28,8 +28,9 @@ from utils import *
 seed = 1000
 np.random.seed(seed)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
-				nn=CartPoleNeuralNetwork(), replay_memory_max_size=10000, batch_size=30)
-agent.env.seed(seed)
+                nn=CartPoleNeuralNetwork(), replay_memory_max_size=10000, batch_size=20)
+agent.env.seed(0) # this is a cheat, in real life environments, use it if you can
+agent.env.action_space.np_random.seed(seed)
 
 DISCOUNT_FACTOR = 0.99
 LEARNING_RATE = 0.0001
@@ -40,26 +41,69 @@ number_steps = []
 total_episodes = 0
 
 
-# %% [markdown]
+## %% [markdown]
 # Training
-# %%
+## %%
 if Path('results/cartpole/saves').exists():
-	shutil.rmtree('results/cartpole/saves')
- 
+    shutil.rmtree('results/cartpole/saves')
+
 logger = tqdm(range(100))
 for _ in logger:
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.4, render=False, optimize=False)
     logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
     n_episodes.append(total_episodes)
     total_rewards.append(total_reward)
     number_steps.append(steps)
 
     for i in range(10):
-        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0.5, epsilon_decay=0.995, min_epsilon=0.01, momentum=0.5)
+        agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=1, epsilon_decay=0.99, min_epsilon=0.01, momentum=0.4)
     total_episodes += i+1
 
-    if total_episodes % 50 == 0:
+    if total_episodes % 20 == 0:
         agent.save_weights(f'results/cartpole/saves/data{total_episodes}.nn')
+# %%
+# find seed
+seeds = []
+for seed in range(500, 1000):
+    try:
+        np.random.seed(seed)
+        agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
+                        nn=CartPoleNeuralNetwork(), replay_memory_max_size=10000, batch_size=30)
+        agent.env.seed(0) # this is a cheat, in real life environments, use it if you can
+        agent.env.action_space.np_random.seed(seed)
+
+        DISCOUNT_FACTOR = 0.99
+        LEARNING_RATE = 0.0001
+
+        n_episodes = []
+        total_rewards = []
+        number_steps = []
+        total_episodes = 0
+
+
+        ## %% [markdown]
+        # Training
+        ## %%
+        if Path('results/cartpole/saves').exists():
+            shutil.rmtree('results/cartpole/saves')
+
+        logger = tqdm(range(10))
+        for _ in logger:
+            total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
+            logger.set_description(f'episode: {total_episodes}\tsteps: {steps}\ttotal_reward: {total_reward}')
+            n_episodes.append(total_episodes)
+            total_rewards.append(total_reward)
+            number_steps.append(steps)
+
+            for i in range(10):
+                agent.start_episode(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0.5, epsilon_decay=0.995, min_epsilon=0.01, momentum=0.5)
+            total_episodes += i+1
+
+            #if total_episodes % 50 == 0:
+            #    agent.save_weights(f'results/cartpole/saves/data{total_episodes}.nn')
+        print(np.mean(total_rewards))
+        seeds.append((seed, np.mean(total_rewards)))
+    except Exception as e: pass
 
 
 # %% [markdown]
@@ -68,13 +112,24 @@ for _ in logger:
 plot_metrics(n_episodes, total_rewards, number_steps, -1)
 plot_metrics(n_episodes, total_rewards, number_steps, 20)
 
+
+
+
+
+
+
+
+
+
 # %% [markdown]
 # Evaluating
+
+
 # %%
 if Path('results/cartpole/recording/tmp-videos').exists():
 	shutil.rmtree('results/cartpole/recording/tmp-videos')
 agent.env = gym.wrappers.Monitor(agent.env, 'results/cartpole/recording/tmp-videos', force=True, video_callable=lambda episode_id: True)
-agent.load_weights('results/cartpole/saves/data550.nn')
+agent.load_weights('results/cartpole/saves/data200.nn')
 
 for i in range(10):
     total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
@@ -127,26 +182,3 @@ done = False
 while not done:
     ne, re, done, _ = env.step(env.action_space.sample())
     print(re)
-
-
-
-
-
-# %% [markdown]
-evaluation
-
-train 1 000 (with %10 evaluation)
-
-evaluation
-
-train 9 000 - 10 000 (with %90 evaluation)
-
-evaluation
-
-train 90 000 - 100 000
-
-evaluation
-
-train 900 000 - 1 000 0000
-
-evaluation1

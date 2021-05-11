@@ -48,8 +48,6 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
     _n_episodes = n_episodes[:count].copy()
     _total_rewards = total_rewards[:count].copy()
     _number_steps = number_steps.copy()
-    
-    cycol = cycle('bgrcmk')
 
     if num_samples == -1:
         num_samples = count

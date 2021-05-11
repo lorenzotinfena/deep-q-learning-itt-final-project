@@ -1,5 +1,4 @@
 import pickle as pk
-import random
 
 import gym
 import numpy as np
@@ -55,7 +54,7 @@ class DQNAgent:
 		"""
 		# get the first state
 		state = self.env.reset()
-
+		steps = 0
 		done = False
 		while not done:
 			# choose action
@@ -69,7 +68,7 @@ class DQNAgent:
 			
 			# store experience
 			self._replay_memory.put(state, action, reward, done, next_state)
-			
+			steps += 1
 			if len(self._replay_memory) >= self._batch_size:
 				# get experience batch from replay memory
 				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
@@ -82,8 +81,9 @@ class DQNAgent:
 					# update neural network
 					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
 				
-				# sync target nn weights
-				self._sync_target_nn_weights()
+				if steps % 10 == 0:
+					# sync target nn weights
+					self._sync_target_nn_weights()
     
 				# epsilon-decay algorithm
 				epsilon *= epsilon_decay
@@ -93,6 +93,8 @@ class DQNAgent:
 			# set current state
 			state = next_state
 		
+		self._sync_target_nn_weights()
+
 	def start_episode_and_evaluate(self, discount_factor, learning_rate,
                                 epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9, render=False, optimize=True):
 		""" start the episode, finish when enviroment return done=True
@@ -153,8 +155,9 @@ class DQNAgent:
 					# update neural network
 					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
 				
-				# sync target nn weights
-				self._sync_target_nn_weights()
+				if steps % 10 == 0:
+					# sync target nn weights
+					self._sync_target_nn_weights()
     
 				# epsilon-decay algorithm
 				epsilon *= epsilon_decay
@@ -163,6 +166,8 @@ class DQNAgent:
 
 			# set current state
 			state = next_state
+
+		self._sync_target_nn_weights()
 
 		if not optimize:
 			# restore original weights
