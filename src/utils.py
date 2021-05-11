@@ -52,13 +52,10 @@ def plot_metrics(n_episodes, total_rewards, number_steps, num_samples = 30):
     if num_samples == -1:
         num_samples = count
     
-    _n_episodes.extend([np.array(_n_episodes[-(count%num_samples):]).mean()] * (num_samples - count%num_samples))
     _n_episodes = np.array(_n_episodes).reshape(num_samples, -1).mean(axis=1)
 
-    _total_rewards.extend([np.array(_total_rewards[-(count%num_samples):]).mean()] * (num_samples - count%num_samples))
     _total_rewards = np.array(_total_rewards).reshape(num_samples, -1).mean(axis=1)
 
-    _number_steps.extend([np.array(_number_steps[-(count%num_samples):]).mean()] * (num_samples - count%num_samples))
     _number_steps = np.array(_number_steps).reshape(num_samples, -1).mean(axis=1)
     
     fig = make_subplots(rows=1, cols=2)

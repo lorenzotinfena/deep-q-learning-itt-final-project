@@ -38,7 +38,7 @@ class DQNAgent:
 		self._target_nn.weights = self._nn.clone_weights()
 	
 	def start_episode(self, discount_factor, learning_rate,
-                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9):
+                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9, steps_to_sync_target_nn=10):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -81,7 +81,7 @@ class DQNAgent:
 					# update neural network
 					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
 				
-				if steps % 10 == 0:
+				if steps % steps_to_sync_target_nn == 0:
 					# sync target nn weights
 					self._sync_target_nn_weights()
     
@@ -93,10 +93,11 @@ class DQNAgent:
 			# set current state
 			state = next_state
 		
+		# sync target nn weights
 		self._sync_target_nn_weights()
 
 	def start_episode_and_evaluate(self, discount_factor, learning_rate,
-                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9, render=False, optimize=True):
+                                epsilon, epsilon_decay = 0.99, min_epsilon = 0.01, momentum=0.9, steps_to_sync_target_nn=10, render=False, optimize=True):
 		""" start the episode, finish when enviroment return done=True
 			Use epsilon-greedy algorithm to 
 		Args:
@@ -155,7 +156,7 @@ class DQNAgent:
 					# update neural network
 					self._nn.backpropagate(z, a, q_values_target, learning_rate, momentum)
 				
-				if steps % 10 == 0:
+				if steps % steps_to_sync_target_nn == 0:
 					# sync target nn weights
 					self._sync_target_nn_weights()
     
@@ -167,6 +168,7 @@ class DQNAgent:
 			# set current state
 			state = next_state
 
+		# sync target nn weights
 		self._sync_target_nn_weights()
 
 		if not optimize:
