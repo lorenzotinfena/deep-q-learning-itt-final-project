@@ -1,7 +1,7 @@
+from IPython.core.display import display
 from core.dqn_agent import DQNAgent
 from cartpole.cartpole_neural_network import CartPoleNeuralNetwork
 from cartpole.cartpole_wrapper import CartPoleWrapper
-from spaceinvaders.space_invaders_neural_network import SpaceInvadersNeuralNetwork
 import gym
 import numpy as np
 import torch
