@@ -144,7 +144,7 @@ class DQNAgent:
 			# store experience
 			if optimize: self._replay_memory.put(state, action, reward, done, next_state)
 			
-			if len(self._replay_memory) >= self._batch_size:
+			if optimize and len(self._replay_memory) >= self._batch_size:
 				# get experience batch from replay memory
 				for state_exp, action_exp, reward_exp, done_exp, next_state_exp in self._replay_memory.get(batch_size=self._batch_size):
 					# find target q(s)
@@ -169,7 +169,7 @@ class DQNAgent:
 			state = next_state
 
 		# sync target nn weights
-		self._sync_target_nn_weights()
+		if optimize: self._sync_target_nn_weights()
 
 		if not optimize:
 			# restore original weights

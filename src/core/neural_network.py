@@ -5,7 +5,7 @@ from copy import deepcopy
 import os
 from pathlib import Path
 class NeuralNetwork:
-    def __init__(self, n_neurons: np.array):
+    def __init__(self, n_neurons: np.array, low_weight, high_weight):
         """
         args:
             n_neurons: np.array
@@ -13,7 +13,7 @@ class NeuralNetwork:
 			path: path to weights and biases dumped
 		"""
         self._n_neurons = n_neurons
-        self.weights = [np.random.uniform(low=-0.5, high=0.5, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
+        self.weights = [np.random.uniform(low=low_weight, high=high_weight, size=(n_neurons[i+1], n_neurons[i]+1)) for i in range(len(n_neurons) - 1)]
         self.v = [np.zeros_like(weights) for weights in self.weights]
 
     def save_weights(self, path: str):
