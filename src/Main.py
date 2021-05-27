@@ -80,7 +80,7 @@ agent.env = gym.wrappers.Monitor(agent.env, 'results/cartpole/recording/tmp-vide
 agent.load_weights('results/cartpole/good-results/3best/saves/data320.nn')
 
 for i in range(10):
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.4, render=False, optimize=False)
     print(f'{i}\t{steps}\t{total_reward}')
 agent.env.close()
 
