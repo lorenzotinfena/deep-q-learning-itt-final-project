@@ -95,7 +95,7 @@ agent.load_weights('results/cartpole/good-results/3best/saves/data320.nn')
 total_rewards = []
 number_steps = []
 for i in range(10000):
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.5, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.4, render=False, optimize=False)
     if i % 100 == 0: print(f'{i}\t{steps}\t{total_reward}')
     total_rewards.append(total_reward)
     number_steps.append(steps)
