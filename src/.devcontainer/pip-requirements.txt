@@ -16,3 +16,5 @@ pyvirtualdisplay
 PyOpenGL
 PyOpenGL-accelerate
 jupyter
+plotly
+pandas

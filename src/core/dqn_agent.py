@@ -86,7 +86,7 @@ class DQNAgent:
 					self._sync_target_nn_weights()
     
 				# epsilon-decay algorithm
-				epsilon *= epsilon_decayz
+				epsilon *= epsilon_decay
 				if epsilon < min_epsilon:
 					epsilon = min_epsilon
 

@@ -74,13 +74,16 @@ plot_metrics(n_episodes, total_rewards, number_steps,)
 
 ## Video demos
 # %%
+_display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
+_ = _display.start()
+# %%
 if Path('results/cartpole/recording/tmp-videos').exists():
 	shutil.rmtree('results/cartpole/recording/tmp-videos')
 agent.env = gym.wrappers.Monitor(agent.env, 'results/cartpole/recording/tmp-videos', force=True, video_callable=lambda episode_id: True)
 agent.load_weights('results/cartpole/good-results/3best/saves/data320.nn')
 
 for i in range(10):
-    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.4, render=False, optimize=False)
+    total_reward, steps = agent.start_episode_and_evaluate(DISCOUNT_FACTOR, LEARNING_RATE, epsilon=0, min_epsilon=0, momentum=0.4, render=True, optimize=False)
     print(f'{i}\t{steps}\t{total_reward}')
 agent.env.close()
 
