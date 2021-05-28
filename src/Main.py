@@ -74,9 +74,6 @@ plot_metrics(n_episodes, total_rewards, number_steps,)
 
 ## Video demos
 # %%
-_display = pyvirtualdisplay.Display(visible=False, size=(1400, 900))
-_ = _display.start()
-# %%
 if Path('results/cartpole/recording/tmp-videos').exists():
 	shutil.rmtree('results/cartpole/recording/tmp-videos')
 agent.env = gym.wrappers.Monitor(agent.env, 'results/cartpole/recording/tmp-videos', force=True, video_callable=lambda episode_id: True)
