@@ -1,8 +1,5 @@
-import pickle as pk
-
 import gym
 import numpy as np
-from gym import wrappers
 
 from core.neural_network import NeuralNetwork
 from core.replay_memory import ReplayMemory

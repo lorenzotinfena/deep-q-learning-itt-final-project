@@ -1,22 +1,7 @@
 from IPython.core.display import display
-from core.dqn_agent import DQNAgent
-from cartpole.cartpole_neural_network import CartPoleNeuralNetwork
-from cartpole.cartpole_wrapper import CartPoleWrapper
-import gym
-import numpy as np
-import torch
-from tqdm import tqdm
 import glob
 import os
 from IPython.display import Video
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-from itertools import cycle
-import sys
-import shutil
-from pathlib import Path
-import shutil
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pyvirtualdisplay

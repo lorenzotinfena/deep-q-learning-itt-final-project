@@ -1,4 +1,3 @@
-import pickle as pk
 from core.neural_network import NeuralNetwork
 from functions import *
 

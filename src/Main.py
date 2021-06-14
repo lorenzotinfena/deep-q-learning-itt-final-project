@@ -4,33 +4,23 @@ from cartpole.cartpole_neural_network import CartPoleNeuralNetwork
 from cartpole.cartpole_wrapper import CartPoleWrapper
 import gym
 import numpy as np
-import torch
 from tqdm import tqdm
-import glob
-import os
-from IPython.display import Video
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
-from itertools import cycle
-import sys
 import shutil
 from pathlib import Path
 import shutil
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
 from utils import *
 import plotly.express as px
 
 # %% [markdown]
-# Initialize deep Q-learning agent and neural network
+# Initialize deep Q-learning agent, neural network and metrics
 # %%
 seed = 1000
 np.random.seed(seed)
 agent = DQNAgent(env=CartPoleWrapper(gym.make("CartPole-v1")),
                 nn=CartPoleNeuralNetwork(), replay_memory_max_size=10000, batch_size=30)
 #agent.env.seed(0)
-agent.env.action_space.np_random.seed(seed)
+#agent.env.action_space.np_random.seed(seed)
 
 DISCOUNT_FACTOR = 0.99
 LEARNING_RATE = 0.0001
@@ -69,9 +59,7 @@ for _ in logger:
 # %%
 plot_metrics(n_episodes, total_rewards, number_steps,)
 # %% [markdown]
-
 # Evaluation
-
 ## Video demos
 # %%
 if Path('results/cartpole/recording/tmp-videos').exists():

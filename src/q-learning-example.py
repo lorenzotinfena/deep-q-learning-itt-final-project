@@ -39,41 +39,39 @@ class QAgent:
 #%%
 TRAIN_EPISODES = 2500
 TEST_EPISODES = 1000
-def main():
-    agent = QAgent(env=gym.make('Taxi-v3'))
-    X = []
-    Y_p = [] # total_reward ottenuti seguendo la policy non migliore (quella per il training)
-    Y_opt_p = [] # total_reward ottenuti seguendo la policy migliore
-    for episode in range(TRAIN_EPISODES):
-        X.append(episode)
-        total_reward, _ = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0.5)
-        Y_p.append(total_reward)
-        Q = deepcopy(agent.Q)
-        total_reward, _ = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0)
-        Y_opt_p.append(total_reward)
-        agent.Q = Q
-    X = np.array(X).reshape(-1, 100).mean(axis=1)
-    Y_p = np.array(Y_p).reshape(-1, 100).mean(axis=1)
-    Y_opt_p = np.array(Y_opt_p).reshape(-1, 100).mean(axis=1)
-    fig = make_subplots(rows=1, cols=1)
-    fig.add_trace(go.Scatter(x=X, y=Y_p, mode='lines', name='con policy reale'), row=1, col=1)
-    fig.add_trace(go.Scatter(x=X, y=Y_opt_p, mode='lines', name='con policy migliore'), row=1, col=1)
-    fig.update_xaxes(title_text="Episode", row=1, col=1)
-    fig.update_yaxes(title_text="Total reward", row=1, col=1)
-    fig.update_layout(height=500, width=750)
-    fig.show()
-    X = []
-    Y = []
-    for episode in range(TEST_EPISODES):
-        total_reward, steps = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0)
-        X.append(episode)
-        Y.append(total_reward)
-    print(f'media total reward: {np.mean(Y)}')
-    print(f'deviazione standard total reward: {np.std(Y)}')
-    fig = px.histogram(x=Y)
-    fig.update_layout(height=300, width=400, showlegend=False)
-    fig.update_xaxes(title_text="Reward")
-    fig.update_yaxes(title_text="Count")
-    fig.show()
-if __name__ == '__main__':
-    main()
+
+agent = QAgent(env=gym.make('Taxi-v3'))
+X = []
+Y_p = [] # total_reward ottenuti seguendo la policy non migliore (quella per il training)
+Y_opt_p = [] # total_reward ottenuti seguendo la policy migliore
+for episode in range(TRAIN_EPISODES):
+    X.append(episode)
+    total_reward, _ = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0.5)
+    Y_p.append(total_reward)
+    Q = deepcopy(agent.Q)
+    total_reward, _ = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0)
+    Y_opt_p.append(total_reward)
+    agent.Q = Q
+X = np.array(X).reshape(-1, 100).mean(axis=1)
+Y_p = np.array(Y_p).reshape(-1, 100).mean(axis=1)
+Y_opt_p = np.array(Y_opt_p).reshape(-1, 100).mean(axis=1)
+fig = make_subplots(rows=1, cols=1)
+fig.add_trace(go.Scatter(x=X, y=Y_p, mode='lines', name='con policy reale'), row=1, col=1)
+fig.add_trace(go.Scatter(x=X, y=Y_opt_p, mode='lines', name='con policy migliore'), row=1, col=1)
+fig.update_xaxes(title_text="Episode", row=1, col=1)
+fig.update_yaxes(title_text="Total reward", row=1, col=1)
+fig.update_layout(height=500, width=750)
+fig.show()
+X = []
+Y = []
+for episode in range(TEST_EPISODES):
+    total_reward, steps = agent.start_episode(discount_factor=0.99, learning_rate=0.1, epsilon=0)
+    X.append(episode)
+    Y.append(total_reward)
+print(f'media total reward: {np.mean(Y)}')
+print(f'deviazione standard total reward: {np.std(Y)}')
+fig = px.histogram(x=Y)
+fig.update_layout(height=300, width=400, showlegend=False)
+fig.update_xaxes(title_text="Reward")
+fig.update_yaxes(title_text="Count")
+fig.show()
